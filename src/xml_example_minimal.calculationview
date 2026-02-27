@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" schemaVersion="2.3" id="MINIMAL_TEST" applyPrivilegeType="NONE" checkAnalyticPrivileges="false" defaultClient="crossClient" defaultLanguage="$$language$$" hierarchiesSQLEnabled="false" translationRelevant="false" visibility="reportingEnabled" calculationScenarioType="TREE_BASED" dataCategory="CUBE" enforceSqlExecution="false" executionSemantic="UNDEFINED" outputViewType="Aggregation">
+  <origin/>
+  <descriptions defaultDescription="Minimal Test View"/>
+  <metadata changedAt="2024-01-01 00:00:00.000" createdAt="2024-01-01 00:00:00.000"/>
+  <localVariables/>
+  <variableMappings/>
+  <informationModelLayout relativeWidthScenario="52"/>
+
+  <dataSources>
+    <DataSource id="TABLE_A" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="MY_SCHEMA" columnObjectName="TABLE_A"/>
+    </DataSource>
+    <DataSource id="TABLE_B" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="MY_SCHEMA" columnObjectName="TABLE_B"/>
+    </DataSource>
+  </dataSources>
+
+  <calculationViews>
+
+    <!-- Projection uzlu TABLE_A - varianta 1 -->
+    <calculationView xsi:type="Calculation:ProjectionView" id="proj_a" filterExpressionLanguage="COLUMN_ENGINE">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="ID"/>
+        <viewAttribute id="NAME"/>
+        <viewAttribute id="AMOUNT"/>
+        <viewAttribute id="TYPE"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#TABLE_A">
+        <mapping xsi:type="Calculation:AttributeMapping" target="ID" source="ID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="NAME" source="NAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AMOUNT" source="AMOUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="TYPE" source="TYPE"/>
+      </input>
+      <filter>"TYPE" = 'STANDARD'</filter>
+    </calculationView>
+
+    <!-- Projection uzlu TABLE_A - varianta 2 (pro union) -->
+    <calculationView xsi:type="Calculation:ProjectionView" id="proj_a2" filterExpressionLanguage="COLUMN_ENGINE">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="ID"/>
+        <viewAttribute id="NAME"/>
+        <viewAttribute id="AMOUNT"/>
+        <viewAttribute id="TYPE"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#TABLE_A">
+        <mapping xsi:type="Calculation:AttributeMapping" target="ID" source="ID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="NAME" source="NAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AMOUNT" source="AMOUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="TYPE" source="TYPE"/>
+      </input>
+      <filter>"TYPE" = 'SPECIAL'</filter>
+    </calculationView>
+
+    <!-- Projection uzlu TABLE_B -->
+    <calculationView xsi:type="Calculation:ProjectionView" id="proj_b">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="ID"/>
+        <viewAttribute id="CATEGORY"/>
+        <viewAttribute id="PRICE"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#VL_Delta">
+        <mapping xsi:type="Calculation:AttributeMapping" target="ID" source="VL_ERZET"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CATEGORY" source="VL_POSNR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRICE" source="VL_AUDAT"/>
+      </input>
+    </calculationView>
+
+    <!-- Union uzlu proj_a a proj_a2 (různé filtry nad stejnou tabulkou) -->
+    <calculationView xsi:type="Calculation:UnionView" id="union_all_a">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="ID"/>
+        <viewAttribute id="NAME"/>
+        <viewAttribute id="AMOUNT"/>
+        <viewAttribute id="TYPE"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input emptyUnionBehavior="NO_ROW" node="#proj_a">
+        <mapping xsi:type="Calculation:AttributeMapping" target="ID" source="ID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="NAME" source="NAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AMOUNT" source="AMOUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="TYPE" source="TYPE"/>
+      </input>
+      <input emptyUnionBehavior="NO_ROW" node="#proj_a2">
+        <mapping xsi:type="Calculation:AttributeMapping" target="ID" source="ID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="NAME" source="NAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AMOUNT" source="AMOUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="TYPE" source="TYPE"/>
+      </input>
+    </calculationView>
+
+    <!-- Join uzlu union_all_a a proj_b -->
+    <calculationView xsi:type="Calculation:JoinView" id="join_ab" joinType="leftOuter">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="ID"/>
+        <viewAttribute id="NAME"/>
+        <viewAttribute id="CATEGORY"/>
+        <viewAttribute id="AMOUNT"/>
+        <viewAttribute id="PRICE"/>
+        <viewAttribute id="TYPE"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#union_all_a">
+        <mapping xsi:type="Calculation:AttributeMapping" target="ID" source="ID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="NAME" source="NAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AMOUNT" source="AMOUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="TYPE" source="TYPE"/>
+      </input>
+      <input node="#proj_b">
+        <mapping xsi:type="Calculation:AttributeMapping" target="CATEGORY" source="CATEGORY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRICE" source="PRICE"/>
+      </input>
+      <joinAttribute name="ID"/>
+    </calculationView>
+
+    <!-- Explicitní AggregationView uzlu -->
+    <calculationView xsi:type="Calculation:AggregationView" id="agg_result">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="ID"/>
+        <viewAttribute id="NAME"/>
+        <viewAttribute id="CATEGORY"/>
+        <viewAttribute id="TYPE"/>
+        <viewAttribute id="TOTAL_AMOUNT"/>
+        <viewAttribute id="TOTAL_PRICE"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#join_ab">
+        <mapping xsi:type="Calculation:AttributeMapping" target="ID" source="ID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="NAME" source="NAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CATEGORY" source="CATEGORY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="TYPE" source="TYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="TOTAL_AMOUNT" source="AMOUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="TOTAL_PRICE" source="PRICE"/>
+      </input>
+    </calculationView>
+
+    <calculationView xsi:type="Calculation:ProjectionView" id="VL_Delta" filterExpressionLanguage="COLUMN_ENGINE">
+      <descriptions>
+        <comment text="used only if USE_DELTA = 1.&#xD;&#xA;gets sales order items and delivery items that have been changed since last load.&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;Modification History:&#xD;&#xA;----------------------------&#xD;&#xA;&#xD;&#xA;Date&#x9;&#x9;&#x9;CHANGE  &#x9;&#x9;   Author&#x9;&#x9;&#x9;Modification&#xD;&#xA;&#xD;&#xA;20180214   17032     &#x9;&#x9;&#x9;dv80mrt&#x9;&#x9;&#x9;&#x9;- VL_DELTA: replaced SERVICEGRADE_DELTA_PREQUERY by SERVICEGRADE_DELTA_PREQUERY2&#xD;&#xA;20180704       24469      SUIK131 &#x9;&#x9;&#x9;&#x9;new field VL_LFART in node &quot;VL_Delta&quot; and the two new projections (with filters) VL_DELTA_VA and VL_DELTA_EK above to ensure that only deliveres for Purchasing/relocation (NFART = NL) are joined with the tour DSO for purchasing&#xD;&#xA;27080   2018-11-06   SUIK131 MHP&#xD;&#xA;                                new parameters ip_va_erdat_from/to for delta prequery sub view (see change there for details)&#xD;&#xA;20181113     27181   dv80mrt   - nothing changed as far as i know&#xD;&#xA;"/>
+      </descriptions>
+      <viewAttributes>
+        <viewAttribute id="VL_AUZET" keepFlag="true"/>
+        <viewAttribute id="VL_AUDAT" keepFlag="true"/>
+        <viewAttribute id="VL_VGPOS" keepFlag="true"/>
+        <viewAttribute id="VL_VGBEL" keepFlag="true"/>
+        <viewAttribute id="VL_ERZET" keepFlag="true"/>
+        <viewAttribute id="VL_ERDAT" keepFlag="true"/>
+        <viewAttribute id="VL_VBELN" keepFlag="true"/>
+        <viewAttribute id="VL_POSNR" keepFlag="true"/>
+        <viewAttribute id="VL_SOURSYSTEM" keepFlag="true"/>
+        <viewAttribute id="XX_VWK_EIS_MOD"/>
+        <viewAttribute id="VL_LFART"/>
+      </viewAttributes>
+      <calculatedViewAttributes>
+        <calculatedViewAttribute datatype="NVARCHAR" id="DELTA" length="1" expressionLanguage="COLUMN_ENGINE">
+          <formula>'X'</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="NVARCHAR" id="NVL_VBELN" length="10" expressionLanguage="COLUMN_ENGINE">
+          <formula>if(isNull(&quot;VL_VBELN&quot;),'',&quot;VL_VBELN&quot;)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="NVARCHAR" id="NVL_POSNR" length="6" expressionLanguage="COLUMN_ENGINE">
+          <formula>if(isNull(&quot;VL_POSNR&quot;),'000000',&quot;VL_POSNR&quot;)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="NVARCHAR" id="NVL_ERDAT" length="8" expressionLanguage="COLUMN_ENGINE">
+          <formula>if(isNull(&quot;VL_ERDAT&quot;),'00000000',&quot;VL_ERDAT&quot;)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="NVARCHAR" id="NVL_ERZET" length="6" expressionLanguage="COLUMN_ENGINE">
+          <formula>if(isNull(&quot;VL_ERZET&quot;),'000000',&quot;VL_ERZET&quot;)</formula>
+        </calculatedViewAttribute>
+      </calculatedViewAttributes>
+      <input node="#SERVICEGRADE_DELTA_PREQUERY_OPT">
+        <mapping xsi:type="Calculation:AttributeMapping" target="VL_AUZET" source="VL_AUZET"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="VL_AUDAT" source="VL_AUDAT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="VL_VGPOS" source="VL_VGPOS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="VL_VGBEL" source="VL_VGBEL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="VL_ERZET" source="VL_ERZET"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="VL_ERDAT" source="VL_ERDAT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="VL_VBELN" source="VL_VBELN"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="VL_POSNR" source="VL_POSNR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="VL_SOURSYSTEM" source="VL_SOURSYSTEM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="XX_VWK_EIS_MOD" source="XX_VWK_EIS_MOD"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="VL_LFART" source="VL_LFART"/>
+      </input>
+      <filter>&quot;DELTA&quot;='$$use_delta$$'</filter>
+    </calculationView>
+
+
+  </calculationViews>
+
+
+  <!-- Logical model (Aggregation uzel) -->
+  <logicalModel id="agg_result">
+    <descriptions defaultDescription="Minimal Test View"/>
+    <attributes>
+      <attribute id="ID" order="1" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="ID"/>
+        <keyMapping columnObjectName="join_ab" columnName="ID"/>
+      </attribute>
+      <attribute id="NAME" order="2" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="NAME"/>
+        <keyMapping columnObjectName="join_ab" columnName="NAME"/>
+      </attribute>
+      <attribute id="CATEGORY" order="3" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="CATEGORY"/>
+        <keyMapping columnObjectName="join_ab" columnName="CATEGORY"/>
+      </attribute>
+    </attributes>
+    <baseMeasures>
+      <measure id="AMOUNT" order="1" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="AMOUNT"/>
+        <measureMapping columnObjectName="join_ab" columnName="AMOUNT"/>
+      </measure>
+      <measure id="PRICE" order="2" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="PRICE"/>
+        <measureMapping columnObjectName="join_ab" columnName="PRICE"/>
+      </measure>
+    </baseMeasures>
+    <calculatedMeasures/>
+    <restrictedMeasures/>
+    <localDimensions/>
+  </logicalModel>
+
+  <!-- Layout - pozice uzlů -->
+  <layout>
+    <shapes>
+      <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+        <upperLeftCorner x="200" y="20"/>
+        <rectangleSize height="0" width="0"/>
+      </shape>
+      <shape expanded="true" modelObjectName="agg_result" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="200" y="140"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="join_ab" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="200" y="260"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="union_all_a" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="60" y="380"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="proj_b" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="340" y="380"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="proj_a" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="-60" y="500"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="proj_a2" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="180" y="500"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="TABLE_A" modelObjectNameSpace="DataSource">
+        <upperLeftCorner x="60" y="640"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="TABLE_B" modelObjectNameSpace="DataSource">
+        <upperLeftCorner x="340" y="500"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+    </shapes>
+  </layout>
+
+</Calculation:scenario>

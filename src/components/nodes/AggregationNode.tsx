@@ -1,0 +1,44 @@
+import { Handle, Position, NodeProps } from 'reactflow';
+import { Layers } from 'lucide-react';
+import { NodeData } from '../../types';
+
+export default function AggregationNode({ data, selected }: NodeProps<NodeData['data']>) {
+  return (
+    <div
+      className={`
+        px-4 py-2 rounded-lg border-2 min-w-[200px] bg-green-50
+        ${selected ? 'border-green-500 shadow-lg ring-2 ring-offset-2 ring-green-400' : 'border-green-300'}
+        hover:shadow-md transition-shadow
+      `}
+    >
+      <Handle type="target" position={Position.Bottom} className="!bg-green-500" />
+
+      <div className="flex items-center gap-2">
+        <Layers className="w-4 h-4 text-green-600" />
+        <div className="flex-1">
+          <div className="font-semibold text-sm text-gray-800">{data.label}</div>
+          <div className="text-xs text-gray-500">Aggregation</div>
+        </div>
+      </div>
+
+      {data.attributes && data.attributes.length > 0 && (
+        <div className="mt-2 pt-2 border-t border-green-200">
+          <div className="text-xs text-gray-500">
+            {data.attributes.filter((a: { isCalculated?: boolean }) => !a.isCalculated).length} attrs
+            {data.attributes.filter((a: { isCalculated?: boolean }) => a.isCalculated).length > 0 &&
+              ` + ${data.attributes.filter((a: { isCalculated?: boolean }) => a.isCalculated).length} calc`}
+          </div>
+        </div>
+      )}
+      {data.inputs && data.inputs.length > 0 && (
+        <div className="mt-1 pt-1 border-t border-green-100">
+          {data.inputs.map((inp: { nodeId: string }, i: number) => (
+            <div key={i} className="text-xs text-green-700 font-mono truncate">← {inp.nodeId}</div>
+          ))}
+        </div>
+      )}
+
+      <Handle type="source" position={Position.Top} className="!bg-green-500" />
+    </div>
+  );
+}
