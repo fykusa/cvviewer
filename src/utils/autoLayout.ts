@@ -5,6 +5,12 @@ const NODE_WIDTH = 220;
 const NODE_HEIGHT = 80;
 
 export function computeAutoLayout(nodes: Node[], edges: Edge[]): Node[] {
+    const selectedNodes = nodes.filter(n => n.selected);
+    const nodesToLayout = selectedNodes.length > 0 ? selectedNodes : nodes;
+
+    const nodeIds = new Set(nodesToLayout.map(n => n.id));
+    const layoutEdges = edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
+
     const g = new dagre.graphlib.Graph();
 
     g.setDefaultEdgeLabel(() => ({}));
@@ -16,23 +22,57 @@ export function computeAutoLayout(nodes: Node[], edges: Edge[]): Node[] {
         marginy: 40,
     });
 
-    nodes.forEach((node) => {
+    let origMinX = Infinity, origMinY = Infinity, origMaxX = -Infinity, origMaxY = -Infinity;
+
+    nodesToLayout.forEach((node) => {
         g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+
+        const x = node.position.x;
+        const y = node.position.y;
+        if (x < origMinX) origMinX = x;
+        if (y < origMinY) origMinY = y;
+        if (x > origMaxX) origMaxX = x;
+        if (y > origMaxY) origMaxY = y;
     });
 
-    edges.forEach((edge) => {
+    const origCenterX = selectedNodes.length > 0 ? origMinX + (origMaxX - origMinX) / 2 : 0;
+    const origCenterY = selectedNodes.length > 0 ? origMinY + (origMaxY - origMinY) / 2 : 0;
+
+    layoutEdges.forEach((edge) => {
         g.setEdge(edge.source, edge.target);
     });
 
     dagre.layout(g);
 
+    let newMinX = Infinity, newMinY = Infinity, newMaxX = -Infinity, newMaxY = -Infinity;
+
+    if (selectedNodes.length > 0) {
+        nodesToLayout.forEach((node) => {
+            const dn = g.node(node.id);
+            if (dn.x < newMinX) newMinX = dn.x;
+            if (dn.y < newMinY) newMinY = dn.y;
+            if (dn.x > newMaxX) newMaxX = dn.x;
+            if (dn.y > newMaxY) newMaxY = dn.y;
+        });
+    }
+
+    const newCenterX = selectedNodes.length > 0 ? newMinX + (newMaxX - newMinX) / 2 : 0;
+    const newCenterY = selectedNodes.length > 0 ? newMinY + (newMaxY - newMinY) / 2 : 0;
+
+    const dx = selectedNodes.length > 0 ? origCenterX - newCenterX : 0;
+    const dy = selectedNodes.length > 0 ? origCenterY - newCenterY : 0;
+
     return nodes.map((node) => {
+        if (!nodeIds.has(node.id)) {
+            return node;
+        }
+
         const dagreNode = g.node(node.id);
         return {
             ...node,
             position: {
-                x: dagreNode.x - NODE_WIDTH / 2,
-                y: dagreNode.y - NODE_HEIGHT / 2,
+                x: dagreNode.x - NODE_WIDTH / 2 + dx,
+                y: dagreNode.y - NODE_HEIGHT / 2 + dy,
             },
         };
     });

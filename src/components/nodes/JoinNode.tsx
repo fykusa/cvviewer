@@ -1,5 +1,5 @@
 import { Handle, Position, NodeProps } from 'reactflow';
-import { GitMerge } from 'lucide-react';
+import { GitMerge, MessageSquare } from 'lucide-react';
 import { NodeData } from '../../types';
 
 export default function JoinNode({ data, selected }: NodeProps<NodeData['data']>) {
@@ -34,6 +34,11 @@ export default function JoinNode({ data, selected }: NodeProps<NodeData['data']>
             {data.joinType || 'inner'} Join
           </div>
         </div>
+        {data.comment && (
+          <div title="This node has a comment. Select it to read.">
+            <MessageSquare className="w-4 h-4 text-purple-500 fill-purple-100" />
+          </div>
+        )}
       </div>
 
       {data.inputs && data.inputs.length > 0 && (

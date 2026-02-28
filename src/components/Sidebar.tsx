@@ -1,4 +1,5 @@
-import { X, Database, Copy, Layers, GitMerge, ArrowRightCircle, Settings, Shuffle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Database, Copy, Layers, GitMerge, ArrowRightCircle, Settings, Shuffle, MessageSquare } from 'lucide-react';
 import { Node } from 'reactflow';
 import { NodeData } from '../types';
 
@@ -8,6 +9,12 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ node, onClose }: SidebarProps) {
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+
+  useEffect(() => {
+    setIsCommentModalOpen(false);
+  }, [node?.id]);
+
   if (!node) {
     return (
       <div className="w-80 h-full bg-white border-l border-gray-200 p-6 flex items-center justify-center">
@@ -58,7 +65,18 @@ export default function Sidebar({ node, onClose }: SidebarProps) {
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 bg-gray-100 rounded-lg">{getIcon()}</div>
             <div>
-              <h3 className="font-semibold text-gray-900">{data.label}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-gray-900">{data.label}</h3>
+                {data.comment && (
+                  <button
+                    onClick={() => setIsCommentModalOpen(true)}
+                    className="p-1 bg-yellow-100 hover:bg-yellow-200 rounded-md transition-colors"
+                    title="View Comments"
+                  >
+                    <MessageSquare className="w-4 h-4 text-yellow-600" />
+                  </button>
+                )}
+              </div>
               <p className="text-sm text-gray-500">{getTypeLabel()}</p>
             </div>
           </div>
@@ -66,6 +84,8 @@ export default function Sidebar({ node, onClose }: SidebarProps) {
             ID: {data.id}
           </div>
         </div>
+
+
 
         {/* DataSource Info */}
         {data.isDataSource && data.dataSourceInfo && (
@@ -117,10 +137,10 @@ export default function Sidebar({ node, onClose }: SidebarProps) {
                     <Settings className="w-4 h-4" />
                     View Attributes ({regular.length})
                   </h4>
-                  <div className="bg-gray-50 rounded-lg overflow-hidden">
-                    <div className="max-h-48 overflow-y-auto">
+                  <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden flex flex-col">
+                    <div className="max-h-[55vh] overflow-y-auto custom-scrollbar">
                       <table className="w-full text-sm">
-                        <thead className="bg-gray-100 sticky top-0">
+                        <thead className="bg-gray-100 sticky top-0 z-10 shadow-sm">
                           <tr>
                             <th className="px-3 py-2 text-left font-medium text-gray-600">Name</th>
                             <th className="px-3 py-2 text-left font-medium text-gray-600">Type</th>
@@ -129,8 +149,16 @@ export default function Sidebar({ node, onClose }: SidebarProps) {
                         <tbody className="divide-y divide-gray-200">
                           {regular.map((attr: { id: string; datatype?: string }, idx: number) => (
                             <tr key={idx} className="hover:bg-gray-100">
-                              <td className="px-3 py-2 font-mono text-gray-900">{attr.id}</td>
-                              <td className="px-3 py-2 text-gray-600">{attr.datatype || '-'}</td>
+                              <td className="px-3 py-2 font-mono text-gray-900 break-all">{attr.id}</td>
+                              <td className="px-3 py-2 text-gray-600">
+                                {attr.datatype === 'attribute' || attr.datatype === 'measure' ? (
+                                  <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${attr.datatype === 'measure' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
+                                    {attr.datatype}
+                                  </span>
+                                ) : (
+                                  attr.datatype || '-'
+                                )}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -145,10 +173,10 @@ export default function Sidebar({ node, onClose }: SidebarProps) {
                     <Settings className="w-4 h-4 text-indigo-500" />
                     Calculated Attributes ({calculated.length})
                   </h4>
-                  <div className="bg-indigo-50 rounded-lg overflow-hidden">
-                    <div className="max-h-48 overflow-y-auto">
+                  <div className="bg-indigo-50 rounded-lg border border-indigo-100 overflow-hidden flex flex-col">
+                    <div className="max-h-[50vh] overflow-y-auto custom-scrollbar">
                       <table className="w-full text-sm">
-                        <thead className="bg-indigo-100 sticky top-0">
+                        <thead className="bg-indigo-100 sticky top-0 z-10 shadow-sm">
                           <tr>
                             <th className="px-3 py-2 text-left font-medium text-indigo-700">Name</th>
                             <th className="px-3 py-2 text-left font-medium text-indigo-700">Formula</th>
@@ -198,6 +226,34 @@ export default function Sidebar({ node, onClose }: SidebarProps) {
           Position: X: {node.position.x}, Y: {node.position.y}
         </div>
       </div>
-    </div>
+
+      {/* Comment Modal */}
+      {
+        isCommentModalOpen && data.comment && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-yellow-500 fill-yellow-100" />
+                  Comments: <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{data.label}</span>
+                </h2>
+                <button
+                  onClick={() => setIsCommentModalOpen(false)}
+                  className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                  title="Close"
+                >
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
+              <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
+                <div className="text-sm text-gray-800 whitespace-pre-wrap font-mono bg-yellow-50/50 p-4 rounded-lg border border-yellow-100">
+                  {data.comment}
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 }

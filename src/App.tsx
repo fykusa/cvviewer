@@ -60,9 +60,16 @@ function App() {
   }, []);
 
   const handleAutoLayout = useCallback(() => {
-    if (!window.confirm('Přepsat aktuální rozmístění nodů pomocí Auto-Layout?')) return;
     if (!flowRef.current) return;
     const currentNodes = flowRef.current.getCurrentNodes();
+    const selectedCount = currentNodes.filter(n => n.selected).length;
+
+    const msg = selectedCount > 0
+      ? `Aplikovat auto-layout POUZE na ${selectedCount} vybraných uzlů?`
+      : 'Přepsat aktuální rozmístění všech uzlů pomocí Auto-Layout?';
+
+    if (!window.confirm(msg)) return;
+
     const laidOutNodes = computeAutoLayout(currentNodes, edges);
     flowRef.current.applyLayout(laidOutNodes);
   }, [edges]);

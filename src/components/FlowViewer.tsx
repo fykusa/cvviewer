@@ -10,6 +10,7 @@ import ReactFlow, {
   NodeTypes,
   BackgroundVariant,
   ConnectionMode,
+  SelectionMode,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -62,6 +63,7 @@ const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
     );
 
     return (
+
       <div className="w-full h-full">
         <ReactFlow
           nodes={nodes}
@@ -70,7 +72,10 @@ const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
           onEdgesChange={onEdgesChange}
           onNodeClick={handleNodeClick}
           nodeTypes={nodeTypes}
-          connectionMode={ConnectionMode.Loose}
+          panOnDrag={true}
+          selectionOnDrag={false}
+          selectionMode={SelectionMode.Partial}
+          panOnScroll={false}
           fitView
           minZoom={0.05}
           maxZoom={2}

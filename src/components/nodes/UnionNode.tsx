@@ -1,5 +1,5 @@
 import { Handle, Position, NodeProps } from 'reactflow';
-import { Shuffle } from 'lucide-react';
+import { Shuffle, MessageSquare } from 'lucide-react';
 import { NodeData } from '../../types';
 
 export default function UnionNode({ data, selected }: NodeProps<NodeData['data']>) {
@@ -21,6 +21,11 @@ export default function UnionNode({ data, selected }: NodeProps<NodeData['data']
                     <div className="font-semibold text-sm text-gray-800">{data.label}</div>
                     <div className="text-xs text-gray-500">Union</div>
                 </div>
+                {data.comment && (
+                    <div title="This node has a comment. Select it to read.">
+                        <MessageSquare className="w-4 h-4 text-indigo-500 fill-indigo-100" />
+                    </div>
+                )}
             </div>
 
             {data.inputs && data.inputs.length > 0 && (

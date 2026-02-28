@@ -7,7 +7,8 @@ export type CalculationViewType =
   | 'UnionView'
   | 'RankView'
   | 'StarJoinView'
-  | 'DATA_BASE_TABLE';
+  | 'DATA_BASE_TABLE'
+  | 'Semantics';
 
 export interface ViewAttribute {
   id: string;
@@ -30,6 +31,7 @@ export interface CalculationViewData {
   joinType?: 'inner' | 'leftOuter' | 'rightOuter' | 'fullOuter' | 'text';
   filters?: any[];
   calculatedViewAttributes?: any[];
+  comment?: string;
 }
 
 export interface LayoutShape {
@@ -52,6 +54,8 @@ export interface ParsedCalculationView {
   calculationViews: CalculationViewData[];
   layoutShapes: LayoutShape[];
   outputs?: any[];
+  logicalModel?: any;
+  globalComment?: string;
 }
 
 export type NodeData = Node & {
@@ -67,6 +71,7 @@ export type NodeData = Node & {
       schemaName?: string;
       columnObjectName?: string;
     };
+    comment?: string;
   };
 };
 

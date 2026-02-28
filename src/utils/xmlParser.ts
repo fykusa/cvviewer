@@ -22,6 +22,31 @@ export function parseCalculationView(xmlContent: string): ParsedCalculationView 
     throw new Error('Invalid Calculation View XML: Missing Calculation:scenario root');
   }
 
+  const getCommentText = (desc: any) => {
+    let text = undefined;
+    if (!desc?.comment) return undefined;
+    if (Array.isArray(desc.comment)) {
+      text = desc.comment.map((c: any) => c.text).filter(Boolean).join('\n');
+    } else {
+      text = desc.comment.text;
+    }
+    if (typeof text === 'string') {
+      return text
+        .replace(/&#xD;/g, '\r')
+        .replace(/&#xA;/g, '\n')
+        .replace(/&#x9;/g, '\t')
+        .replace(/&#x20;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'");
+    }
+    return text;
+  };
+
+  const globalComment = getCommentText(scenario.descriptions);
+
   // Parse DataSources (Database Tables)
   const dataSources = Array.isArray(scenario.dataSources?.DataSource)
     ? scenario.dataSources.DataSource
@@ -36,17 +61,7 @@ export function parseCalculationView(xmlContent: string): ParsedCalculationView 
       ? [scenario.calculationViews.calculationView]
       : [];
 
-  // Also add logicalModel as an Aggregation node
-  let calcViewsWithData = [...calcViewsRaw];
-  if (scenario.logicalModel) {
-    const logicalModel = {
-      ...scenario.logicalModel,
-      'xsi:type': 'Calculation:AggregationView', // logicalModel is typically an aggregation
-    };
-    calcViewsWithData.push(logicalModel);
-  }
-
-  const calculationViews: CalculationViewData[] = calcViewsWithData.map((view: any) => {
+  const calculationViews: CalculationViewData[] = calcViewsRaw.map((view: any) => {
     const xsiType = view['xsi:type'] || '';
     const viewType: CalculationViewType = xsiType.replace('Calculation:', '') as CalculationViewType;
 
@@ -106,6 +121,7 @@ export function parseCalculationView(xmlContent: string): ParsedCalculationView 
       joinType: view.joinType,
       filters: view.filter ? [view.filter] : [],
       calculatedViewAttributes: calcAttrs,
+      comment: getCommentText(view.descriptions),
     };
   });
 
@@ -132,6 +148,8 @@ export function parseCalculationView(xmlContent: string): ParsedCalculationView 
     calculationViews,
     layoutShapes,
     outputs: scenario.outputs?.output,
+    logicalModel: scenario.logicalModel,
+    globalComment,
   };
 }
 
@@ -192,6 +210,7 @@ export function transformToReactFlow(
         attributes: cv.viewAttributes,
         joinType: cv.joinType,
         inputs: cv.inputs,
+        comment: cv.comment,
       },
     });
     idToType.set(cv.id, cv.type);
@@ -225,7 +244,54 @@ export function transformToReactFlow(
   });
 
   // Create output edges
-  if (parsed.outputs) {
+  // Create output (Semantics) edges and node
+  if (parsed.logicalModel) {
+    const sourceId = parsed.logicalModel.id;
+    if (sourceId && nodes.find((n) => n.id === sourceId)) {
+      edges.push({
+        id: `${sourceId}-Output`,
+        source: sourceId,
+        target: 'Output',
+        type: 'default',
+        animated: false,
+        style: { stroke: '#22c55e', strokeWidth: 2 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#22c55e' },
+        data: {
+          sourceLabel: sourceId,
+          targetLabel: 'Semantics',
+        },
+      });
+    }
+
+    if (!nodes.find((n) => n.id === 'Output')) {
+      const pos = idToPosition.get('Output') || { x: 70, y: 60 };
+
+      const attributes = Array.isArray(parsed.logicalModel.attributes?.attribute)
+        ? parsed.logicalModel.attributes.attribute.map((a: any) => ({ id: a.id, datatype: 'attribute' }))
+        : parsed.logicalModel.attributes?.attribute
+          ? [{ id: parsed.logicalModel.attributes.attribute.id, datatype: 'attribute' }]
+          : [];
+
+      const measures = Array.isArray(parsed.logicalModel.baseMeasures?.measure)
+        ? parsed.logicalModel.baseMeasures.measure.map((m: any) => ({ id: m.id, datatype: 'measure' }))
+        : parsed.logicalModel.baseMeasures?.measure
+          ? [{ id: parsed.logicalModel.baseMeasures.measure.id, datatype: 'measure' }]
+          : [];
+
+      nodes.push({
+        id: 'Output',
+        type: 'outputNode',
+        position: { x: pos.x, y: pos.y - 80 },
+        data: {
+          id: 'Output',
+          type: 'Semantics',
+          label: 'Semantics',
+          attributes: [...attributes, ...measures],
+          comment: parsed.globalComment,
+        },
+      });
+    }
+  } else if (parsed.outputs) {
     const outputs = Array.isArray(parsed.outputs) ? parsed.outputs : [parsed.outputs];
     outputs.forEach((output: any) => {
       if (output.input) {
@@ -237,7 +303,7 @@ export function transformToReactFlow(
               id: `${sourceId}-Output`,
               source: sourceId,
               target: 'Output',
-              type: 'smoothstep',
+              type: 'default',
               animated: false,
               style: { stroke: '#22c55e', strokeWidth: 2 },
               markerEnd: { type: MarkerType.ArrowClosed, color: '#22c55e' },
@@ -273,7 +339,7 @@ export function transformToReactFlow(
 export function exportToXml(
   originalXml: string,
   nodes: Node[],
-  originalShapes?: { modelObjectName: string; rectWidth: string | number; rectHeight: string | number }[]
+  originalShapes?: { modelObjectName: string; rectWidth?: string | number; rectHeight?: string | number }[]
 ): string {
   // Build a quick lookup for original rectangleSize values
   const rectSizeMap = new Map<string, { w: string; h: string }>();

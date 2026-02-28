@@ -24,11 +24,21 @@ export default function FileUpload({ onFileLoad, error }: FileUploadProps) {
 
   const handleExampleFile = async () => {
     try {
-      const response = await fetch('/src/xml_example_minimal.calculationview');
+      const response = await fetch('/src/xml_example_minimal_comm.calculationview');
       const content = await response.text();
-      onFileLoad(content, 'xml_example_ZZP01_MAT.calculationview');
+      onFileLoad(content, 'xml_example_minimal_comm.calculationview');
     } catch (err) {
       console.error('Failed to load example file:', err);
+    }
+  };
+
+  const handleBigViewFile = async () => {
+    try {
+      const response = await fetch('/src/xml_SERVICEGRADE_load.calculationview');
+      const content = await response.text();
+      onFileLoad(content, 'xml_SERVICEGRADE_load.calculationview');
+    } catch (err) {
+      console.error('Failed to load big view file:', err);
     }
   };
 
@@ -76,10 +86,18 @@ export default function FileUpload({ onFileLoad, error }: FileUploadProps) {
 
             <button
               onClick={handleExampleFile}
-              className="w-full px-4 py-3 bg-slate-800 text-white font-medium rounded-xl hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-slate-800 text-white font-medium rounded-xl hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 mb-2"
             >
               <FileText className="w-4 h-4" />
               Load Example File
+            </button>
+
+            <button
+              onClick={handleBigViewFile}
+              className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-colors flex items-center justify-center gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              Load Big View
             </button>
 
             {error && (
