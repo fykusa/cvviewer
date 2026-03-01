@@ -9,7 +9,6 @@ import ReactFlow, {
   useEdgesState,
   NodeTypes,
   BackgroundVariant,
-  ConnectionMode,
   SelectionMode,
 } from 'reactflow';
 import 'reactflow/dist/style.css';

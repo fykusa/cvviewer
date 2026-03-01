@@ -20,8 +20,17 @@ export default function OutputNode({ data, selected }: NodeProps<NodeData['data'
             <div className="font-bold text-sm text-gray-800 text-center">{data.label}</div>
           </div>
           {data.comment && (
-            <div title="This node has a comment. Select it to read.">
-              <MessageSquare className="w-4 h-4 text-emerald-500 fill-emerald-100" />
+            <div
+              title="This node has a comment. Click to read."
+              className="cursor-pointer hover:scale-110 hover:brightness-110 transition-all"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(
+                  new CustomEvent('open-node-comment', { detail: { nodeId: data.id } })
+                );
+              }}
+            >
+              <MessageSquare className="w-5 h-5 text-emerald-500 fill-emerald-100 drop-shadow-sm" />
             </div>
           )}
         </div>

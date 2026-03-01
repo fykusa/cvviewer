@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { X, Database, Copy, Layers, GitMerge, ArrowRightCircle, Settings, Shuffle, MessageSquare } from 'lucide-react';
+import { useState } from 'react';
+import { X, Database, Copy, Layers, GitMerge, ArrowRightCircle, Settings, Shuffle, MessageSquare, Tag, Calculator } from 'lucide-react';
 import { Node } from 'reactflow';
 import { NodeData } from '../types';
 
 interface SidebarProps {
   node: Node<NodeData['data']> | null;
   onClose: () => void;
+  isCommentModalOpen: boolean;
+  setIsCommentModalOpen: (open: boolean) => void;
 }
 
-export default function Sidebar({ node, onClose }: SidebarProps) {
-  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
-
-  useEffect(() => {
-    setIsCommentModalOpen(false);
-  }, [node?.id]);
+export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommentModalOpen }: SidebarProps) {
+  const [selectedFormula, setSelectedFormula] = useState<{ name: string, formula: string } | null>(null);
 
   if (!node) {
     return (
@@ -126,78 +124,51 @@ export default function Sidebar({ node, onClose }: SidebarProps) {
         )}
 
         {/* Attributes */}
-        {data.attributes && data.attributes.length > 0 && (() => {
-          const regular = data.attributes.filter((a: { id: string; datatype?: string; isCalculated?: boolean; formula?: string }) => !a.isCalculated);
-          const calculated = data.attributes.filter((a: { id: string; datatype?: string; isCalculated?: boolean; formula?: string }) => a.isCalculated);
-          return (
-            <div className="space-y-4">
-              {regular.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Settings className="w-4 h-4" />
-                    View Attributes ({regular.length})
-                  </h4>
-                  <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden flex flex-col">
-                    <div className="max-h-[55vh] overflow-y-auto custom-scrollbar">
-                      <table className="w-full text-sm">
-                        <thead className="bg-gray-100 sticky top-0 z-10 shadow-sm">
-                          <tr>
-                            <th className="px-3 py-2 text-left font-medium text-gray-600">Name</th>
-                            <th className="px-3 py-2 text-left font-medium text-gray-600">Type</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                          {regular.map((attr: { id: string; datatype?: string }, idx: number) => (
-                            <tr key={idx} className="hover:bg-gray-100">
-                              <td className="px-3 py-2 font-mono text-gray-900 break-all">{attr.id}</td>
-                              <td className="px-3 py-2 text-gray-600">
-                                {attr.datatype === 'attribute' || attr.datatype === 'measure' ? (
-                                  <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${attr.datatype === 'measure' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
-                                    {attr.datatype}
-                                  </span>
-                                ) : (
-                                  attr.datatype || '-'
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+        {data.attributes && data.attributes.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Attributes ({data.attributes.length})
+            </h4>
+            <div className="max-h-[55vh] overflow-y-auto custom-scrollbar pr-1">
+              <div className="space-y-1">
+                {data.attributes.map((attr: { id: string; datatype?: string; isCalculated?: boolean; formula?: string }, idx: number) => (
+                  <div
+                    key={idx}
+                    className={`flex items-center gap-2 px-2 py-1.5 rounded border transition-colors ${attr.isCalculated
+                      ? 'bg-indigo-50 border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 cursor-pointer'
+                      : 'bg-gray-50 border-gray-100 hover:bg-gray-100'
+                      }`}
+                    onClick={() => attr.isCalculated && attr.formula ? setSelectedFormula({ name: attr.id, formula: attr.formula }) : undefined}
+                  >
+                    {attr.isCalculated ? (
+                      <Calculator className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                    ) : (
+                      <Tag className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                    )}
+
+                    <span className={`font-mono text-xs truncate flex-1 ${attr.isCalculated ? 'text-indigo-900' : 'text-gray-700'}`} title={attr.id}>
+                      {attr.id}
+                    </span>
+
+                    {!attr.isCalculated && (attr.datatype === 'attribute' || attr.datatype === 'measure') && (
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shrink-0 shadow-sm ${attr.datatype === 'measure' ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'bg-blue-100 text-blue-700 border border-blue-200'
+                        }`}>
+                        {attr.datatype === 'measure' ? 'Measure' : 'Attribute'}
+                      </span>
+                    )}
+
+                    {attr.isCalculated && (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shrink-0 bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm">
+                        Calculated
+                      </span>
+                    )}
                   </div>
-                </div>
-              )}
-              {calculated.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-indigo-700 mb-2 flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-indigo-500" />
-                    Calculated Attributes ({calculated.length})
-                  </h4>
-                  <div className="bg-indigo-50 rounded-lg border border-indigo-100 overflow-hidden flex flex-col">
-                    <div className="max-h-[50vh] overflow-y-auto custom-scrollbar">
-                      <table className="w-full text-sm">
-                        <thead className="bg-indigo-100 sticky top-0 z-10 shadow-sm">
-                          <tr>
-                            <th className="px-3 py-2 text-left font-medium text-indigo-700">Name</th>
-                            <th className="px-3 py-2 text-left font-medium text-indigo-700">Formula</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-indigo-200">
-                          {calculated.map((attr: { id: string; formula?: string }, idx: number) => (
-                            <tr key={idx} className="hover:bg-indigo-100">
-                              <td className="px-3 py-2 font-mono text-indigo-900 whitespace-nowrap">{attr.id}</td>
-                              <td className="px-3 py-2 font-mono text-xs text-indigo-700 max-w-[140px] truncate" title={attr.formula}>{attr.formula || '-'}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
-          );
-        })()}
+          </div>
+        )}
 
         {/* Inputs */}
         {data.inputs && data.inputs.length > 0 && (
@@ -254,6 +225,32 @@ export default function Sidebar({ node, onClose }: SidebarProps) {
           </div>
         )
       }
+
+      {/* Formula Modal */}
+      {selectedFormula && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col border border-indigo-200">
+            <div className="flex items-center justify-between p-4 border-b border-indigo-100 bg-indigo-50/30">
+              <h2 className="text-lg font-semibold text-indigo-900 flex items-center gap-2">
+                <Calculator className="w-5 h-5 text-indigo-500" />
+                Expression: <span className="font-mono text-sm bg-white border border-indigo-100 px-2 py-1 rounded shadow-sm text-indigo-700">{selectedFormula.name}</span>
+              </h2>
+              <button
+                onClick={() => setSelectedFormula(null)}
+                className="p-1 hover:bg-indigo-100 rounded-md transition-colors"
+                title="Close"
+              >
+                <X className="w-6 h-6 text-indigo-400" />
+              </button>
+            </div>
+            <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-slate-900 rounded-b-xl">
+              <div className="text-sm text-indigo-300 font-mono whitespace-pre-wrap leading-relaxed">
+                {selectedFormula.formula}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 }

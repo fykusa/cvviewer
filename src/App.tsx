@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Download, ArrowLeft, LayoutGrid } from 'lucide-react';
 import { Node, Edge } from 'reactflow';
 
@@ -18,6 +18,7 @@ function App() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
 
   const flowRef = useRef<FlowViewerHandle>(null);
 
@@ -35,6 +36,7 @@ function App() {
         setLayoutShapes(parsed.layoutShapes);
         setSelectedNode(null);
         setIsSidebarOpen(false);
+        setIsCommentModalOpen(false);
       } catch (err) {
         console.error('Failed to parse XML:', err);
         setError(err instanceof Error ? err.message : 'Failed to parse the Calculation View file');
@@ -43,9 +45,25 @@ function App() {
     []
   );
 
+  useEffect(() => {
+    const handleOpenComment = (event: Event) => {
+      const customEvent = event as CustomEvent<{ nodeId: string }>;
+      const nodeId = customEvent.detail.nodeId;
+      const targetNode = nodes.find(n => n.id === nodeId);
+      if (targetNode) {
+        setSelectedNode(targetNode);
+        setIsSidebarOpen(true);
+        setIsCommentModalOpen(true);
+      }
+    };
+    window.addEventListener('open-node-comment', handleOpenComment);
+    return () => window.removeEventListener('open-node-comment', handleOpenComment);
+  }, [nodes]);
+
   const handleNodeClick = useCallback((node: Node) => {
     setSelectedNode(node);
     setIsSidebarOpen(true);
+    setIsCommentModalOpen(false);
   }, []);
 
   const handleReset = useCallback(() => {
@@ -176,6 +194,8 @@ function App() {
             <Sidebar
               node={selectedNode}
               onClose={() => setIsSidebarOpen(false)}
+              isCommentModalOpen={isCommentModalOpen}
+              setIsCommentModalOpen={setIsCommentModalOpen}
             />
           </div>
         )}

@@ -72,6 +72,7 @@ export type NodeData = Node & {
       columnObjectName?: string;
     };
     comment?: string;
+    onCommentClick?: () => void;
   };
 };
 

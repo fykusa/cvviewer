@@ -7,8 +7,17 @@ The user loads a file, sees the node graph, can rearrange nodes, apply auto-layo
 and save the updated positions back to a valid `.calculationview` XML that SAP HANA
 Studio / SAP Business Application Studio can open.
 
-**Version:** 0.1  
+**Version:** 0.2.1  
 **Stack:** React 18 + TypeScript + Vite + React Flow + dagre + fast-xml-parser + TailwindCSS
+
+---
+
+## Current State & Recent Features
+
+The application currently supports the following refined workflows:
+- **Automatic Layout:** Models are automatically organized using `dagre` upon initial loading.
+- **Robust Export:** The Save layout functionality reliably downloads the updated XML file retaining the original `.calculationview` filename.
+- **Interactive Nodes:** Node comment icons are now directly clickable, immediately opening a modal with comment details (bypassing the sidebar workflow).
 
 ---
 

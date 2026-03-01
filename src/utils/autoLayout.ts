@@ -1,8 +1,17 @@
 import dagre from 'dagre';
 import { Node, Edge } from 'reactflow';
 
-const NODE_WIDTH = 220;
-const NODE_HEIGHT = 80;
+const getFallbackWidth = (node: Node) => {
+    const labelLen = node.data?.label?.length || 0;
+    return Math.max(220, labelLen * 8 + 80);
+};
+
+const getFallbackHeight = (node: Node) => {
+    let h = 80;
+    if (node.data?.inputs) h += node.data.inputs.length * 24;
+    if (node.data?.attributes?.length > 0) h += 40;
+    return h;
+};
 
 export function computeAutoLayout(nodes: Node[], edges: Edge[]): Node[] {
     const selectedNodes = nodes.filter(n => n.selected);
@@ -25,7 +34,9 @@ export function computeAutoLayout(nodes: Node[], edges: Edge[]): Node[] {
     let origMinX = Infinity, origMinY = Infinity, origMaxX = -Infinity, origMaxY = -Infinity;
 
     nodesToLayout.forEach((node) => {
-        g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+        const width = node.width || getFallbackWidth(node);
+        const height = node.height || getFallbackHeight(node);
+        g.setNode(node.id, { width, height });
 
         const x = node.position.x;
         const y = node.position.y;
@@ -68,11 +79,14 @@ export function computeAutoLayout(nodes: Node[], edges: Edge[]): Node[] {
         }
 
         const dagreNode = g.node(node.id);
+        const width = node.width || getFallbackWidth(node);
+        const height = node.height || getFallbackHeight(node);
+
         return {
             ...node,
             position: {
-                x: dagreNode.x - NODE_WIDTH / 2 + dx,
-                y: dagreNode.y - NODE_HEIGHT / 2 + dy,
+                x: dagreNode.x - width / 2 + dx,
+                y: dagreNode.y - height / 2 + dy,
             },
         };
     });
