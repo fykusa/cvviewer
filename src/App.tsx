@@ -5,6 +5,7 @@ import { Node, Edge } from 'reactflow';
 import FileUpload from './components/FileUpload';
 import FlowViewer, { FlowViewerHandle } from './components/FlowViewer';
 import GroupModal from './components/GroupModal';
+import GroupSidebar from './components/GroupSidebar';
 import Sidebar from './components/Sidebar';
 import { parseCalculationView, transformToReactFlow, exportToXml } from './utils/xmlParser';
 import { computeAutoLayout } from './utils/autoLayout';
@@ -192,6 +193,44 @@ function App() {
     setIsGroupModalOpen(true);
   }, []);
 
+  const handleGroupUpdate = useCallback((newData: Partial<GroupData>) => {
+    if (!flowRef.current || !selectedNode) return;
+    const newNodes = flowRef.current.getCurrentNodes().map(n =>
+      n.id === selectedNode.id ? { ...n, data: { ...n.data, ...newData } } : n
+    );
+    flowRef.current.applyLayout(newNodes);
+    setSelectedNode(prev => prev ? { ...prev, data: { ...prev.data, ...newData } } : null);
+  }, [selectedNode]);
+
+  const handleGroupDelete = useCallback(() => {
+    if (!flowRef.current || !selectedNode) return;
+    const allNodes = flowRef.current.getCurrentNodes();
+    const newNodes = allNodes
+      .filter(n => n.id !== selectedNode.id)
+      .map(n => {
+        if (n.parentId === selectedNode.id) {
+          const absPos = (n as any).positionAbsolute ?? n.position;
+          const { parentId, ...rest } = n;
+          return { ...rest, position: absPos };
+        }
+        return n;
+      });
+    flowRef.current.applyLayout(newNodes);
+    setSelectedNode(null);
+    setIsSidebarOpen(false);
+  }, [selectedNode]);
+
+  const handleRemoveMemberFromGroup = useCallback((memberId: string) => {
+    if (!flowRef.current) return;
+    const allNodes = flowRef.current.getCurrentNodes();
+    const member = allNodes.find(n => n.id === memberId);
+    if (!member) return;
+    const absPos = (member as any).positionAbsolute ?? member.position;
+    const { parentId, ...rest } = member;
+    const newNodes = allNodes.map(n => n.id === memberId ? { ...rest, position: absPos } : n);
+    flowRef.current.applyLayout(newNodes);
+  }, []);
+
   const handleGroupConfirm = useCallback((title: string, comment: string) => {
     if (!flowRef.current) return;
     const allNodes = flowRef.current.getCurrentNodes();
@@ -348,11 +387,30 @@ function App() {
             initialNodes={nodes}
             initialEdges={edges}
             onNodeClick={handleNodeClick}
+            onGroupDeleted={(gId) => {
+              if (selectedNode?.id === gId) {
+                setSelectedNode(null);
+                setIsSidebarOpen(false);
+              }
+            }}
           />
         </div>
 
         {/* Sidebar */}
-        {isSidebarOpen && (
+        {isSidebarOpen && selectedNode?.type === 'groupNode' ? (
+          <div className="w-80 flex-shrink-0">
+            <GroupSidebar
+              groupNode={selectedNode}
+              memberNodes={
+                flowRef.current?.getCurrentNodes().filter(n => n.parentId === selectedNode.id) ?? []
+              }
+              onClose={() => setIsSidebarOpen(false)}
+              onUpdate={handleGroupUpdate}
+              onDelete={handleGroupDelete}
+              onRemoveMember={handleRemoveMemberFromGroup}
+            />
+          </div>
+        ) : isSidebarOpen && (
           <div className="w-80 flex-shrink-0">
             <Sidebar
               node={selectedNode}

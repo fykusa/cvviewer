@@ -186,6 +186,10 @@ export function parseCalculationView(xmlContent: string): ParsedCalculationView 
         memberIds: Array.isArray(g.members?.member)
           ? g.members.member.map((m: any) => m.nodeId)
           : g.members?.member ? [g.members.member.nodeId] : [],
+        borderColor: g.borderColor,
+        bgColor: g.bgColor,
+        titleColor: g.titleColor,
+        commentColor: g.commentColor,
       });
     });
   }
@@ -393,7 +397,15 @@ export function transformToReactFlow(
         position: { x: group.x, y: group.y },
         style: { width: group.width, height: group.height },
         zIndex: -1,
-        data: { id: group.id, label: group.title, comment: group.comment },
+        data: {
+          id: group.id,
+          label: group.title,
+          comment: group.comment,
+          borderColor: group.borderColor,
+          bgColor: group.bgColor,
+          titleColor: group.titleColor,
+          commentColor: group.commentColor,
+        },
       });
       // Convert member nodes from absolute to relative position and assign parentId
       nodes.forEach((n, i) => {
@@ -469,7 +481,12 @@ export function exportToXml(
       const commentXml = gn.data.comment
         ? `\n    <comment>${escapeXml(String(gn.data.comment))}</comment>`
         : '';
-      return `  <group id="${gn.id}" title="${escapeXml(String(gn.data.label))}">`
+      return `  <group id="${gn.id}" title="${escapeXml(String(gn.data.label))}"` +
+        (gn.data.borderColor ? ` borderColor="${escapeXml(gn.data.borderColor)}"` : '') +
+        (gn.data.bgColor ? ` bgColor="${escapeXml(gn.data.bgColor)}"` : '') +
+        (gn.data.titleColor ? ` titleColor="${escapeXml(gn.data.titleColor)}"` : '') +
+        (gn.data.commentColor ? ` commentColor="${escapeXml(gn.data.commentColor)}"` : '') +
+        `>`
         + commentXml
         + `\n    <position x="${Math.round(pos.x)}" y="${Math.round(pos.y)}" width="${Math.round(Number(gn.style?.width ?? 300))}" height="${Math.round(Number(gn.style?.height ?? 200))}"/>`
         + `\n    <members>\n${members}\n    </members>`

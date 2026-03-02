@@ -41,10 +41,11 @@ interface FlowViewerProps {
   initialNodes: Node[];
   initialEdges: Edge[];
   onNodeClick?: (node: Node) => void;
+  onGroupDeleted?: (groupId: string) => void;
 }
 
 const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
-  ({ initialNodes, initialEdges, onNodeClick }, ref) => {
+  ({ initialNodes, initialEdges, onNodeClick, onGroupDeleted }, ref) => {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
@@ -76,7 +77,8 @@ const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
         }
         return n;
       }));
-    }, []);
+      deletedGroupIds.forEach(id => onGroupDeleted?.(id));
+    }, [onGroupDeleted]);
 
     return (
 

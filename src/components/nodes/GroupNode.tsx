@@ -1,24 +1,49 @@
-import { NodeProps } from 'reactflow';
+import { NodeProps, NodeResizer, useReactFlow } from 'reactflow';
+import { GroupData } from '../../types';
 
-export interface GroupData {
-  id: string;
-  label: string;
-  comment?: string;
-}
+export default function GroupNode({ id, data, selected }: NodeProps<GroupData>) {
+  const { setNodes } = useReactFlow();
 
-export default function GroupNode({ data, selected }: NodeProps<GroupData>) {
+  const borderColor = data.borderColor || '#fbbf24';
+  const bgColor = data.bgColor || 'rgba(255, 251, 235, 0.4)';
+  const titleColor = data.titleColor || '#92400e';
+  const commentColor = data.commentColor || '#d97706';
+
   return (
-    <div
-      style={{ width: '100%', height: '100%' }}
-      className={`rounded-xl border-2 border-dashed bg-amber-50/40 backdrop-blur-sm
-        ${selected ? 'border-amber-500' : 'border-amber-300'}`}
-    >
-      <div className="px-3 py-2 border-b border-amber-300/60">
-        <div className="text-sm font-semibold text-amber-800">{data.label}</div>
-        {data.comment && (
-          <div className="text-xs text-amber-600 mt-1 whitespace-pre-wrap">{data.comment}</div>
-        )}
+    <>
+      <NodeResizer
+        color={borderColor}
+        isVisible={selected}
+        minWidth={120}
+        minHeight={80}
+        onResizeEnd={(_evt, params) => {
+          setNodes(nds =>
+            nds.map(n =>
+              n.id === id
+                ? { ...n, style: { ...n.style, width: params.width, height: params.height } }
+                : n
+            )
+          );
+        }}
+      />
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          backgroundColor: bgColor,
+          border: `2px dashed ${borderColor}`,
+          borderRadius: 12,
+        }}
+      >
+        <div style={{ borderBottom: `1px solid ${borderColor}60` }} className="px-3 py-2">
+          <div style={{ color: titleColor }} className="text-sm font-semibold">{data.label}</div>
+          {data.comment && (
+            <div style={{ color: commentColor }} className="text-xs mt-1 whitespace-pre-wrap">
+              {data.comment}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -4,6 +4,10 @@ export interface GroupData {
   id: string;
   label: string;
   comment?: string;
+  borderColor?: string;
+  bgColor?: string;
+  titleColor?: string;
+  commentColor?: string;
 }
 
 export interface ViewerGroup {
@@ -15,6 +19,10 @@ export interface ViewerGroup {
   width: number;
   height: number;
   memberIds: string[];
+  borderColor?: string;
+  bgColor?: string;
+  titleColor?: string;
+  commentColor?: string;
 }
 
 export type CalculationViewType =
