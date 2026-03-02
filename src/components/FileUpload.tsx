@@ -24,7 +24,7 @@ export default function FileUpload({ onFileLoad, error }: FileUploadProps) {
 
   const handleExampleFile = async () => {
     try {
-      const response = await fetch('/src/xml_example_minimal_comm.calculationview');
+      const response = await fetch('xml_example_minimal_comm.calculationview');
       const content = await response.text();
       onFileLoad(content, 'xml_example_minimal_comm.calculationview');
     } catch (err) {
@@ -34,7 +34,7 @@ export default function FileUpload({ onFileLoad, error }: FileUploadProps) {
 
   const handleBigViewFile = async () => {
     try {
-      const response = await fetch('/src/xml_SERVICEGRADE_load.calculationview');
+      const response = await fetch('xml_SERVICEGRADE_load.calculationview');
       const content = await response.text();
       onFileLoad(content, 'xml_SERVICEGRADE_load.calculationview');
     } catch (err) {
@@ -86,6 +86,7 @@ export default function FileUpload({ onFileLoad, error }: FileUploadProps) {
 
             <button
               onClick={handleExampleFile}
+              title={`Source: ./xml_example_minimal_comm.calculationview`}
               className="w-full px-4 py-3 bg-slate-800 text-white font-medium rounded-xl hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 mb-2"
             >
               <FileText className="w-4 h-4" />
@@ -94,6 +95,7 @@ export default function FileUpload({ onFileLoad, error }: FileUploadProps) {
 
             <button
               onClick={handleBigViewFile}
+              title={`Source: ./xml_SERVICEGRADE_load.calculationview`}
               className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-500 transition-colors flex items-center justify-center gap-2"
             >
               <FileText className="w-4 h-4" />
