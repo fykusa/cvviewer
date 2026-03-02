@@ -45,6 +45,27 @@ export function parseCalculationView(xmlContent: string): ParsedCalculationView 
     return text;
   };
 
+  const decodeEntities = (text: string): string =>
+    text
+      .replace(/&#xD;/g, '\r')
+      .replace(/&#xA;/g, '\n')
+      .replace(/&#x9;/g, '\t')
+      .replace(/&#x20;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&apos;/g, "'");
+
+  const getFilterText = (filterRaw: any): string | undefined => {
+    if (!filterRaw) return undefined;
+    // filter element may be a string directly, or have a _text child, or multiple sub-elements
+    if (typeof filterRaw === 'string') return decodeEntities(filterRaw);
+    if (typeof filterRaw._text === 'string') return decodeEntities(filterRaw._text);
+    // Try JSON serialisation as fallback for complex structures
+    try { return decodeEntities(JSON.stringify(filterRaw, null, 2)); } catch { return undefined; }
+  };
+
   const globalComment = getCommentText(scenario.descriptions);
 
   // Parse DataSources (Database Tables)
@@ -122,6 +143,7 @@ export function parseCalculationView(xmlContent: string): ParsedCalculationView 
       filters: view.filter ? [view.filter] : [],
       calculatedViewAttributes: calcAttrs,
       comment: getCommentText(view.descriptions),
+      filter: getFilterText(view.filter),
     };
   });
 
@@ -211,6 +233,7 @@ export function transformToReactFlow(
         joinType: cv.joinType,
         inputs: cv.inputs,
         comment: cv.comment,
+        filter: cv.filter,
       },
     });
     idToType.set(cv.id, cv.type);

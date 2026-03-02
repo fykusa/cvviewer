@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@types/dagre": "^0.7.53",
+    "@types/prismjs": "^1.26.6",
     "dagre": "^0.8.5",
     "fast-xml-parser": "^4.5.1",
     "lucide-react": "^0.400.0",
+    "prismjs": "^1.30.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "reactflow": "^11.11.4"

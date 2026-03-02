@@ -32,6 +32,7 @@ export interface CalculationViewData {
   filters?: any[];
   calculatedViewAttributes?: any[];
   comment?: string;
+  filter?: string;
 }
 
 export interface LayoutShape {
@@ -72,6 +73,7 @@ export type NodeData = Node & {
       columnObjectName?: string;
     };
     comment?: string;
+    filter?: string;
     onCommentClick?: () => void;
   };
 };

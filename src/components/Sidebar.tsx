@@ -1,16 +1,19 @@
 import { useState } from 'react';
-import { X, Database, Copy, Layers, GitMerge, ArrowRightCircle, Settings, Shuffle, MessageSquare, Tag, Calculator } from 'lucide-react';
+import { X, Database, Copy, Layers, GitMerge, ArrowRightCircle, Settings, Shuffle, MessageSquare, Tag, Calculator, Filter } from 'lucide-react';
 import { Node } from 'reactflow';
 import { NodeData } from '../types';
+import FilterViewer from './FilterViewer';
 
 interface SidebarProps {
   node: Node<NodeData['data']> | null;
   onClose: () => void;
   isCommentModalOpen: boolean;
   setIsCommentModalOpen: (open: boolean) => void;
+  isFilterModalOpen: boolean;
+  setIsFilterModalOpen: (open: boolean) => void;
 }
 
-export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommentModalOpen }: SidebarProps) {
+export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommentModalOpen, isFilterModalOpen, setIsFilterModalOpen }: SidebarProps) {
   const [selectedFormula, setSelectedFormula] = useState<{ name: string, formula: string } | null>(null);
 
   if (!node) {
@@ -67,11 +70,20 @@ export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommen
                 <h3 className="font-semibold text-gray-900">{data.label}</h3>
                 {data.comment && (
                   <button
-                    onClick={() => setIsCommentModalOpen(true)}
+                    onClick={() => { setIsCommentModalOpen(true); setIsFilterModalOpen(false); }}
                     className="p-1 bg-yellow-100 hover:bg-yellow-200 rounded-md transition-colors"
                     title="View Comments"
                   >
                     <MessageSquare className="w-4 h-4 text-yellow-600" />
+                  </button>
+                )}
+                {data.filter && (
+                  <button
+                    onClick={() => { setIsFilterModalOpen(true); setIsCommentModalOpen(false); }}
+                    className="p-1 bg-orange-100 hover:bg-orange-200 rounded-md transition-colors"
+                    title="View Filter"
+                  >
+                    <Filter className="w-4 h-4 text-orange-600" />
                   </button>
                 )}
               </div>
@@ -201,8 +213,14 @@ export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommen
       {/* Comment Modal */}
       {
         isCommentModalOpen && data.comment && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            onClick={() => setIsCommentModalOpen(false)}
+          >
+            <div
+              className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                   <MessageSquare className="w-5 h-5 text-yellow-500 fill-yellow-100" />
@@ -226,10 +244,48 @@ export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommen
         )
       }
 
+      {/* Filter Modal */}
+      {
+        isFilterModalOpen && data.filter && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            onClick={() => setIsFilterModalOpen(false)}
+          >
+            <div
+              className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 border-b border-orange-100 bg-orange-50/40">
+                <h2 className="text-lg font-semibold text-orange-900 flex items-center gap-2">
+                  <Filter className="w-5 h-5 text-orange-500 fill-orange-100" />
+                  Filter: <span className="font-mono text-sm bg-white border border-orange-100 px-2 py-1 rounded shadow-sm text-orange-700">{data.label}</span>
+                </h2>
+                <button
+                  onClick={() => setIsFilterModalOpen(false)}
+                  className="p-1 hover:bg-orange-100 rounded-md transition-colors"
+                  title="Close"
+                >
+                  <X className="w-6 h-6 text-orange-400" />
+                </button>
+              </div>
+              <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-slate-900 rounded-b-xl">
+                <FilterViewer code={data.filter} />
+              </div>
+            </div>
+          </div>
+        )
+      }
+
       {/* Formula Modal */}
       {selectedFormula && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col border border-indigo-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          onClick={() => setSelectedFormula(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col border border-indigo-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between p-4 border-b border-indigo-100 bg-indigo-50/30">
               <h2 className="text-lg font-semibold text-indigo-900 flex items-center gap-2">
                 <Calculator className="w-5 h-5 text-indigo-500" />

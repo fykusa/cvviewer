@@ -1,5 +1,5 @@
 import { Handle, Position, NodeProps } from 'reactflow';
-import { Shuffle, MessageSquare } from 'lucide-react';
+import { Shuffle, MessageSquare, Filter } from 'lucide-react';
 import { NodeData } from '../../types';
 
 export default function UnionNode({ data, selected }: NodeProps<NodeData['data']>) {
@@ -33,6 +33,20 @@ export default function UnionNode({ data, selected }: NodeProps<NodeData['data']
                         }}
                     >
                         <MessageSquare className="w-5 h-5 text-indigo-500 fill-indigo-100 drop-shadow-sm" />
+                    </div>
+                )}
+                {data.filter && (
+                    <div
+                        title="This node has a filter. Click to view."
+                        className="cursor-pointer hover:scale-110 hover:brightness-110 transition-all"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            window.dispatchEvent(
+                                new CustomEvent('open-node-filter', { detail: { nodeId: data.id } })
+                            );
+                        }}
+                    >
+                        <Filter className="w-5 h-5 text-orange-500 fill-orange-100 drop-shadow-sm" />
                     </div>
                 )}
             </div>

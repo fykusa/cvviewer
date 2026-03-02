@@ -1,5 +1,5 @@
 import { Handle, Position, NodeProps } from 'reactflow';
-import { Copy, MessageSquare } from 'lucide-react';
+import { Copy, MessageSquare, Filter } from 'lucide-react';
 import { NodeData } from '../../types';
 
 export default function ProjectionNode({ data, selected }: NodeProps<NodeData['data']>) {
@@ -31,6 +31,20 @@ export default function ProjectionNode({ data, selected }: NodeProps<NodeData['d
             }}
           >
             <MessageSquare className="w-5 h-5 text-blue-500 fill-blue-100 drop-shadow-sm" />
+          </div>
+        )}
+        {data.filter && (
+          <div
+            title="This node has a filter. Click to view."
+            className="cursor-pointer hover:scale-110 hover:brightness-110 transition-all"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.dispatchEvent(
+                new CustomEvent('open-node-filter', { detail: { nodeId: data.id } })
+              );
+            }}
+          >
+            <Filter className="w-5 h-5 text-orange-500 fill-orange-100 drop-shadow-sm" />
           </div>
         )}
       </div>

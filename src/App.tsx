@@ -19,6 +19,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   const flowRef = useRef<FlowViewerHandle>(null);
 
@@ -54,16 +55,33 @@ function App() {
         setSelectedNode(targetNode);
         setIsSidebarOpen(true);
         setIsCommentModalOpen(true);
+        setIsFilterModalOpen(false);
+      }
+    };
+    const handleOpenFilter = (event: Event) => {
+      const customEvent = event as CustomEvent<{ nodeId: string }>;
+      const nodeId = customEvent.detail.nodeId;
+      const targetNode = nodes.find(n => n.id === nodeId);
+      if (targetNode) {
+        setSelectedNode(targetNode);
+        setIsSidebarOpen(true);
+        setIsFilterModalOpen(true);
+        setIsCommentModalOpen(false);
       }
     };
     window.addEventListener('open-node-comment', handleOpenComment);
-    return () => window.removeEventListener('open-node-comment', handleOpenComment);
+    window.addEventListener('open-node-filter', handleOpenFilter);
+    return () => {
+      window.removeEventListener('open-node-comment', handleOpenComment);
+      window.removeEventListener('open-node-filter', handleOpenFilter);
+    };
   }, [nodes]);
 
   const handleNodeClick = useCallback((node: Node) => {
     setSelectedNode(node);
     setIsSidebarOpen(true);
     setIsCommentModalOpen(false);
+    setIsFilterModalOpen(false);
   }, []);
 
   const handleReset = useCallback(() => {
@@ -75,6 +93,8 @@ function App() {
     setSelectedNode(null);
     setIsSidebarOpen(false);
     setError(null);
+    setIsCommentModalOpen(false);
+    setIsFilterModalOpen(false);
   }, []);
 
   const handleAutoLayout = useCallback(() => {
@@ -196,6 +216,8 @@ function App() {
               onClose={() => setIsSidebarOpen(false)}
               isCommentModalOpen={isCommentModalOpen}
               setIsCommentModalOpen={setIsCommentModalOpen}
+              isFilterModalOpen={isFilterModalOpen}
+              setIsFilterModalOpen={setIsFilterModalOpen}
             />
           </div>
         )}
