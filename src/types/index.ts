@@ -1,5 +1,22 @@
 import { Node, Edge } from 'reactflow';
 
+export interface GroupData {
+  id: string;
+  label: string;
+  comment?: string;
+}
+
+export interface ViewerGroup {
+  id: string;
+  title: string;
+  comment?: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  memberIds: string[];
+}
+
 export type CalculationViewType =
   | 'ProjectionView'
   | 'JoinView'
@@ -57,6 +74,7 @@ export interface ParsedCalculationView {
   outputs?: any[];
   logicalModel?: any;
   globalComment?: string;
+  viewerGroups?: ViewerGroup[];
 }
 
 export type NodeData = Node & {

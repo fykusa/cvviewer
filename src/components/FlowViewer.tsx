@@ -19,6 +19,7 @@ import AggregationNode from './nodes/AggregationNode';
 import DataSourceNode from './nodes/DataSourceNode';
 import OutputNode from './nodes/OutputNode';
 import UnionNode from './nodes/UnionNode';
+import GroupNode from './nodes/GroupNode';
 
 const nodeTypes: NodeTypes = {
   projectionNode: ProjectionNode,
@@ -27,6 +28,7 @@ const nodeTypes: NodeTypes = {
   dataSource: DataSourceNode,
   outputNode: OutputNode,
   unionNode: UnionNode,
+  groupNode: GroupNode,
 };
 
 export interface FlowViewerHandle {
@@ -61,6 +63,21 @@ const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
       [onNodeClick]
     );
 
+    const handleNodesDelete = useCallback((deletedNodes: Node[]) => {
+      const deletedGroupIds = new Set(
+        deletedNodes.filter(n => n.type === 'groupNode').map(n => n.id)
+      );
+      if (deletedGroupIds.size === 0) return;
+      setNodes(prev => prev.map(n => {
+        if (n.parentId && deletedGroupIds.has(n.parentId)) {
+          const absPos = (n as any).positionAbsolute ?? n.position;
+          const { parentId, ...rest } = n;
+          return { ...rest, position: absPos };
+        }
+        return n;
+      }));
+    }, []);
+
     return (
 
       <div className="w-full h-full">
@@ -70,6 +87,7 @@ const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={handleNodeClick}
+          onNodesDelete={handleNodesDelete}
           nodeTypes={nodeTypes}
           panOnDrag={true}
           selectionOnDrag={false}

@@ -6,6 +6,7 @@ import {
   ParsedCalculationView,
   CalculationViewType,
   InputConnection,
+  ViewerGroup,
 } from '../types';
 
 export function parseCalculationView(xmlContent: string): ParsedCalculationView {
@@ -164,6 +165,31 @@ export function parseCalculationView(xmlContent: string): ParsedCalculationView 
     }));
   }
 
+  // Parse viewerGroups (custom viewer extension)
+  const viewerGroups: ViewerGroup[] = [];
+  const viewerGroupsRaw = scenario.viewerGroups?.group;
+  if (viewerGroupsRaw) {
+    const arr = Array.isArray(viewerGroupsRaw) ? viewerGroupsRaw : [viewerGroupsRaw];
+    arr.forEach((g: any) => {
+      const commentVal = g.comment;
+      const commentText = typeof commentVal === 'string' ? commentVal
+        : typeof commentVal?._text === 'string' ? commentVal._text
+        : undefined;
+      viewerGroups.push({
+        id: g.id,
+        title: g.title,
+        comment: commentText,
+        x: parseInt(g.position?.x ?? '0', 10),
+        y: parseInt(g.position?.y ?? '0', 10),
+        width: parseInt(g.position?.width ?? '300', 10),
+        height: parseInt(g.position?.height ?? '200', 10),
+        memberIds: Array.isArray(g.members?.member)
+          ? g.members.member.map((m: any) => m.nodeId)
+          : g.members?.member ? [g.members.member.nodeId] : [],
+      });
+    });
+  }
+
   return {
     id: scenario.id,
     dataSources,
@@ -172,6 +198,7 @@ export function parseCalculationView(xmlContent: string): ParsedCalculationView 
     outputs: scenario.outputs?.output,
     logicalModel: scenario.logicalModel,
     globalComment,
+    viewerGroups,
   };
 }
 
@@ -356,7 +383,43 @@ export function transformToReactFlow(
     });
   }
 
+  // Reconstruct groups from parsed viewerGroups
+  if (parsed.viewerGroups && parsed.viewerGroups.length > 0) {
+    const groupNodes: Node[] = [];
+    parsed.viewerGroups.forEach((group) => {
+      groupNodes.push({
+        id: group.id,
+        type: 'groupNode',
+        position: { x: group.x, y: group.y },
+        style: { width: group.width, height: group.height },
+        zIndex: -1,
+        data: { id: group.id, label: group.title, comment: group.comment },
+      });
+      // Convert member nodes from absolute to relative position and assign parentId
+      nodes.forEach((n, i) => {
+        if (group.memberIds.includes(n.id)) {
+          nodes[i] = {
+            ...n,
+            parentId: group.id,
+            position: { x: n.position.x - group.x, y: n.position.y - group.y },
+          };
+        }
+      });
+    });
+    // Prepend group nodes so they appear before children (ReactFlow requirement)
+    nodes.unshift(...groupNodes);
+  }
+
   return { nodes, edges };
+}
+
+function escapeXml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 }
 
 export function exportToXml(
@@ -372,8 +435,12 @@ export function exportToXml(
     });
   }
 
-  // Build new <shapes> content with current node positions
-  const shapesXml = nodes
+  // Separate group nodes from regular nodes
+  const groupNodes = nodes.filter(n => n.type === 'groupNode');
+  const regularNodes = nodes.filter(n => n.type !== 'groupNode');
+
+  // Build new <shapes> content with current node positions (regular nodes only)
+  const shapesXml = regularNodes
     .map((node) => {
       // positionAbsolute is set by React Flow after layout; position may lag in flat (non-nested) graphs
       const pos = (node as any).positionAbsolute ?? node.position;
@@ -390,26 +457,51 @@ export function exportToXml(
 
   const newLayoutBlock = `  <layout>\n    <shapes>\n${shapesXml}\n    </shapes>\n  </layout>`;
 
+  // Build <viewerGroups> XML block
+  let viewerGroupsXml = '';
+  if (groupNodes.length > 0) {
+    const groupElements = groupNodes.map(gn => {
+      const pos = (gn as any).positionAbsolute ?? gn.position;
+      const members = nodes
+        .filter(n => n.parentId === gn.id)
+        .map(n => `      <member nodeId="${n.id}"/>`)
+        .join('\n');
+      const commentXml = gn.data.comment
+        ? `\n    <comment>${escapeXml(String(gn.data.comment))}</comment>`
+        : '';
+      return `  <group id="${gn.id}" title="${escapeXml(String(gn.data.label))}">`
+        + commentXml
+        + `\n    <position x="${Math.round(pos.x)}" y="${Math.round(pos.y)}" width="${Math.round(Number(gn.style?.width ?? 300))}" height="${Math.round(Number(gn.style?.height ?? 200))}"/>`
+        + `\n    <members>\n${members}\n    </members>`
+        + `\n  </group>`;
+    }).join('\n');
+    viewerGroupsXml = `\n<viewerGroups>\n${groupElements}\n</viewerGroups>`;
+  }
+
+  // Strip any existing <viewerGroups> block from original XML to avoid duplicates
+  let xmlToProcess = originalXml.replace(/<viewerGroups>[\s\S]*?<\/viewerGroups>\n?/g, '');
+
   // Find the LAST <layout>...</layout> block — the file may contain an earlier <layout>
   // inside <privateDataFoundation> which must NOT be touched; the real position layout
   // is always the last one, immediately before </Calculation:scenario>.
   const LAYOUT_OPEN = '<layout>';
   const LAYOUT_CLOSE = '</layout>';
-  const lastLayoutStart = originalXml.lastIndexOf(LAYOUT_OPEN);
+  const lastLayoutStart = xmlToProcess.lastIndexOf(LAYOUT_OPEN);
   if (lastLayoutStart !== -1) {
-    const lastLayoutEnd = originalXml.indexOf(LAYOUT_CLOSE, lastLayoutStart);
+    const lastLayoutEnd = xmlToProcess.indexOf(LAYOUT_CLOSE, lastLayoutStart);
     if (lastLayoutEnd !== -1) {
       return (
-        originalXml.substring(0, lastLayoutStart) +
+        xmlToProcess.substring(0, lastLayoutStart) +
         newLayoutBlock +
-        originalXml.substring(lastLayoutEnd + LAYOUT_CLOSE.length)
+        viewerGroupsXml +
+        xmlToProcess.substring(lastLayoutEnd + LAYOUT_CLOSE.length)
       );
     }
   }
 
   // No layout section exists yet — insert before closing </Calculation:scenario>
-  return originalXml.replace(
+  return xmlToProcess.replace(
     '<\/Calculation:scenario>',
-    newLayoutBlock + '\n<\/Calculation:scenario>'
+    newLayoutBlock + viewerGroupsXml + '\n<\/Calculation:scenario>'
   );
 }

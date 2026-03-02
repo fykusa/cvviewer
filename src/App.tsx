@@ -1,13 +1,14 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Download, ArrowLeft, LayoutGrid, RefreshCw } from 'lucide-react';
+import { Download, ArrowLeft, LayoutGrid, RefreshCw, BoxSelect } from 'lucide-react';
 import { Node, Edge } from 'reactflow';
 
 import FileUpload from './components/FileUpload';
 import FlowViewer, { FlowViewerHandle } from './components/FlowViewer';
+import GroupModal from './components/GroupModal';
 import Sidebar from './components/Sidebar';
 import { parseCalculationView, transformToReactFlow, exportToXml } from './utils/xmlParser';
 import { computeAutoLayout } from './utils/autoLayout';
-import { LayoutShape } from './types';
+import { GroupData, LayoutShape } from './types';
 
 function App() {
   const [xmlContent, setXmlContent] = useState<string | null>(null);
@@ -20,6 +21,8 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [groupSelectedCount, setGroupSelectedCount] = useState(0);
 
   const flowRef = useRef<FlowViewerHandle>(null);
   const mergeFileInputRef = useRef<HTMLInputElement>(null);
@@ -177,6 +180,58 @@ function App() {
     flowRef.current.applyLayout(laidOutNodes);
   }, [edges]);
 
+  const handleCreateGroup = useCallback(() => {
+    if (!flowRef.current) return;
+    const selected = flowRef.current.getCurrentNodes()
+      .filter(n => n.selected && n.type !== 'groupNode');
+    if (selected.length < 1) {
+      alert('Vyberte alespoň jeden uzel pro seskupení.');
+      return;
+    }
+    setGroupSelectedCount(selected.length);
+    setIsGroupModalOpen(true);
+  }, []);
+
+  const handleGroupConfirm = useCallback((title: string, comment: string) => {
+    if (!flowRef.current) return;
+    const allNodes = flowRef.current.getCurrentNodes();
+    const selected = allNodes.filter(n => n.selected && n.type !== 'groupNode');
+
+    const PADDING = 50;
+    const xs = selected.map(n => ((n as any).positionAbsolute ?? n.position).x);
+    const ys = selected.map(n => ((n as any).positionAbsolute ?? n.position).y);
+    const x2s = selected.map(n => ((n as any).positionAbsolute ?? n.position).x + (n.width ?? 220));
+    const y2s = selected.map(n => ((n as any).positionAbsolute ?? n.position).y + (n.height ?? 120));
+
+    const gx = Math.min(...xs) - PADDING;
+    const gy = Math.min(...ys) - PADDING;
+    const gw = Math.max(...x2s) - gx + PADDING;
+    const gh = Math.max(...y2s) - gy + PADDING;
+
+    const groupId = `group_${Date.now()}`;
+
+    const groupNode: Node = {
+      id: groupId,
+      type: 'groupNode',
+      position: { x: gx, y: gy },
+      style: { width: gw, height: gh },
+      zIndex: -1,
+      selectable: true,
+      data: { id: groupId, label: title, comment } as GroupData,
+    };
+
+    const updatedNodes = allNodes.map(n => {
+      if (!selected.find(s => s.id === n.id)) return n;
+      const abs = (n as any).positionAbsolute ?? n.position;
+      return { ...n, parentId: groupId, position: { x: abs.x - gx, y: abs.y - gy } };
+    });
+
+    const newNodes = [groupNode, ...updatedNodes];
+    flowRef.current.applyLayout(newNodes);
+    setNodes(newNodes);
+    setIsGroupModalOpen(false);
+  }, []);
+
   const handleSave = useCallback(async () => {
     if (!xmlContent || !fileName || !flowRef.current) return;
     const currentNodes = flowRef.current.getCurrentNodes();
@@ -261,6 +316,14 @@ function App() {
             onChange={handleMergeFileChange}
           />
           <button
+            onClick={handleCreateGroup}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-500 transition-colors"
+            title="Vyberte uzly a klikněte pro seskupení"
+          >
+            <BoxSelect className="w-4 h-4" />
+            <span className="text-sm font-medium">Seskupit uzly</span>
+          </button>
+          <button
             onClick={handleAutoLayout}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors"
           >
@@ -302,6 +365,14 @@ function App() {
           </div>
         )}
       </div>
+      {isGroupModalOpen && (
+        <GroupModal
+          isOpen={isGroupModalOpen}
+          selectedCount={groupSelectedCount}
+          onConfirm={handleGroupConfirm}
+          onCancel={() => setIsGroupModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
