@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { Download, ArrowLeft, LayoutGrid } from 'lucide-react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Download, ArrowLeft, LayoutGrid, RefreshCw } from 'lucide-react';
 import { Node, Edge } from 'reactflow';
 
 import FileUpload from './components/FileUpload';
@@ -22,6 +22,7 @@ function App() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   const flowRef = useRef<FlowViewerHandle>(null);
+  const mergeFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileLoad = useCallback(
     (content: string, name: string) => {
@@ -44,6 +45,70 @@ function App() {
       }
     },
     []
+  );
+
+  const handleFileMerge = useCallback(
+    (content: string, name: string) => {
+      if (!flowRef.current) return;
+      try {
+        setError(null);
+        const parsed = parseCalculationView(content);
+        const { nodes: newNodes, edges: newEdges } = transformToReactFlow(parsed);
+
+        const currentNodes = flowRef.current.getCurrentNodes();
+        const currentPositionMap = new Map<string, { x: number; y: number }>();
+        currentNodes.forEach((n) => {
+          const pos = (n as any).positionAbsolute ?? n.position;
+          currentPositionMap.set(n.id, pos);
+        });
+
+        const mergedNodes: Node[] = newNodes.map((newNode) => {
+          if (currentPositionMap.has(newNode.id)) {
+            return { ...newNode, position: currentPositionMap.get(newNode.id)! };
+          }
+          return newNode;
+        });
+
+        flowRef.current.applyLayout(mergedNodes);
+        flowRef.current.applyEdges(newEdges);
+
+        setNodes(mergedNodes);
+        setEdges(newEdges);
+        setXmlContent(content);
+        setFileName(name);
+        setLayoutShapes(parsed.layoutShapes);
+
+        setSelectedNode((prev) => {
+          if (!prev) return null;
+          const updated = mergedNodes.find((n) => n.id === prev.id);
+          if (!updated) {
+            setIsSidebarOpen(false);
+            setIsCommentModalOpen(false);
+            setIsFilterModalOpen(false);
+            return null;
+          }
+          return updated;
+        });
+      } catch (err) {
+        console.error('Failed to merge XML:', err);
+        setError(err instanceof Error ? err.message : 'Failed to parse the Calculation View file');
+      }
+    },
+    []
+  );
+
+  const handleMergeFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      event.target.value = '';
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        handleFileMerge(e.target?.result as string, file.name);
+      };
+      reader.readAsText(file);
+    },
+    [handleFileMerge]
   );
 
   useEffect(() => {
@@ -180,6 +245,21 @@ function App() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => mergeFileInputRef.current?.click()}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors"
+            title="Zachová polohy stávajících uzlů"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span className="text-sm font-medium">Aktualizovat z nového souboru</span>
+          </button>
+          <input
+            ref={mergeFileInputRef}
+            type="file"
+            accept=".calculationview,.xml"
+            className="hidden"
+            onChange={handleMergeFileChange}
+          />
           <button
             onClick={handleAutoLayout}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors"

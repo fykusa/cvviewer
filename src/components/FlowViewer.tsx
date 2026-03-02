@@ -32,6 +32,7 @@ const nodeTypes: NodeTypes = {
 export interface FlowViewerHandle {
   getCurrentNodes: () => Node[];
   applyLayout: (newNodes: Node[]) => void;
+  applyEdges: (newEdges: Edge[]) => void;
 }
 
 interface FlowViewerProps {
@@ -43,13 +44,12 @@ interface FlowViewerProps {
 const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
   ({ initialNodes, initialEdges, onNodeClick }, ref) => {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-    const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
     useImperativeHandle(ref, () => ({
       getCurrentNodes: () => nodes,
-      applyLayout: (newNodes: Node[]) => {
-        setNodes(newNodes);
-      },
+      applyLayout: (newNodes: Node[]) => { setNodes(newNodes); },
+      applyEdges: (newEdges: Edge[]) => { setEdges(newEdges); },
     }));
 
     const handleNodeClick = useCallback(

@@ -256,6 +256,10 @@
         <upperLeftCorner x="340" y="380"/>
         <rectangleSize height="-1" width="-1"/>
       </shape>
+      <shape expanded="true" modelObjectName="VL_Delta" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="500" y="500"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
       <shape expanded="true" modelObjectName="proj_a" modelObjectNameSpace="CalculationView">
         <upperLeftCorner x="-60" y="500"/>
         <rectangleSize height="-1" width="-1"/>
