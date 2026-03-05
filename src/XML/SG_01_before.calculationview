@@ -7074,9 +7074,6 @@ and &quot;LP_DATUM&quot;>='$$erdat$$'</filter>
         <calculatedViewAttribute datatype="NVARCHAR" id="LP_MAX_TS_90" length="14" expressionLanguage="COLUMN_ENGINE">
           <formula>if(int(&quot;LP_STATUS&quot;)=90,&quot;LP_MIN_TS&quot;,'')</formula>
         </calculatedViewAttribute>
-        <calculatedViewAttribute datatype="NVARCHAR" id="LPC_MIN_TS_90" length="14" expressionLanguage="COLUMN_ENGINE">
-          <formula>if(int(&quot;LP_STATUS&quot;)=90,&quot;LP_MIN_TS&quot;,'99991231000000')</formula>
-        </calculatedViewAttribute>
         <calculatedViewAttribute datatype="NVARCHAR" id="LP_MAX_TS_100" length="14" expressionLanguage="COLUMN_ENGINE">
           <formula>if(int(&quot;LP_STATUS&quot;)=100,&quot;LP_MIN_TS&quot;,'')</formula>
         </calculatedViewAttribute>
@@ -7148,7 +7145,6 @@ and &quot;LP_DATUM&quot;>='$$erdat$$'</filter>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_80"/>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_85"/>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_90"/>
-        <viewAttribute aggregationType="min" id="LP_MIN_TS_90"/>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_100"/>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_106"/>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_110"/>
@@ -7182,7 +7178,6 @@ and &quot;LP_DATUM&quot;>='$$erdat$$'</filter>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_MAX_TS_80" source="LP_MAX_TS_80"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_MAX_TS_85" source="LP_MAX_TS_85"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_MAX_TS_90" source="LP_MAX_TS_90"/>
-        <mapping xsi:type="Calculation:AttributeMapping" target="LP_MIN_TS_90" source="LPC_MIN_TS_90"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_MAX_TS_100" source="LP_MAX_TS_100"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_MAX_TS_106" source="LP_MAX_TS_106"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_MAX_TS_110" source="LP_MAX_TS_110"/>
@@ -7357,7 +7352,6 @@ and &quot;LP_DATUM&quot;>='$$erdat$$'</filter>
         <viewAttribute id="TG_DUEGI"/>
         <viewAttribute id="LP_ROUTE"/>
         <viewAttribute id="LPA_MAX_TS_50"/>
-        <viewAttribute id="LP_MIN_TS_90"/>
         <viewAttribute id="LP_ZZGG8_ADD"/>
       </viewAttributes>
       <calculatedViewAttributes>
@@ -7471,9 +7465,6 @@ and &quot;LP_DATUM&quot;>='$$erdat$$'</filter>
         <calculatedViewAttribute datatype="VARCHAR" id="LPC_TS_GE_50" length="14" expressionLanguage="COLUMN_ENGINE">
           <formula>if(int(&quot;LP_STATUS&quot;)>=50,&quot;LPA_MAX_TS_50&quot;,'')</formula>
         </calculatedViewAttribute>
-        <calculatedViewAttribute datatype="NVARCHAR" id="LP090ITS" length="14" expressionLanguage="COLUMN_ENGINE">
-          <formula>if(&quot;LP_MIN_TS_90&quot;='99991231000000','',&quot;LP_MIN_TS_90&quot;)</formula>
-        </calculatedViewAttribute>
       </calculatedViewAttributes>
       <input node="#LP_current2">
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_VENUM_TOP" source="LP_VENUM_TOP"/>
@@ -7533,7 +7524,6 @@ and &quot;LP_DATUM&quot;>='$$erdat$$'</filter>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_MAX_LWRK_120" source="LP_MAX_LWRK_120"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_MIN_MIN_TS_GE_50" source="LP_MIN_MIN_TS_GE_50"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LPA_MAX_TS_50" source="LPA_MAX_TS_50"/>
-        <mapping xsi:type="Calculation:AttributeMapping" target="LP_MIN_TS_90" source="LP_MIN_TS_90"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_SOURSYSTEM" source="LP_SOURSYSTEM"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_WERKS" source="LP_WERKS"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_PICKETID" source="LP_PICKETID"/>
@@ -7566,7 +7556,6 @@ and &quot;LP_DATUM&quot;>='$$erdat$$'</filter>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_GE_80"/>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_GE_85"/>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_GE_90"/>
-        <viewAttribute aggregationType="min" id="LP090ITS"/>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_GE_100"/>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_GE_106"/>
         <viewAttribute aggregationType="max" id="LP_MAX_TS_GE_110"/>
@@ -7771,7 +7760,6 @@ if(&quot;LP_MIN_STATUS&quot;='120','O','X')))))))))))))))))))))</formula>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_MIN_ROUTE" source="LP_ROUTE"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_MAX_ROUTE" source="LP_ROUTE"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LPA_MAX_TS_GE_50" source="LPC_TS_GE_50"/>
-        <mapping xsi:type="Calculation:AttributeMapping" target="LP090ITS" source="LP090ITS"/>
         <mapping xsi:type="Calculation:AttributeMapping" target="LP_ZZGG8_ADD" source="LP_ZZGG8_ADD"/>
       </input>
     </calculationView>

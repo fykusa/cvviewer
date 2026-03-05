@@ -155,3 +155,21 @@ No server-side code.
 - Only `DATA_BASE_TABLE` DataSource type is handled; other types render as DataSourceNode
 - No support for calculated columns visible in graph edges
 - Large files (1000+ nodes) may be slow to render; no virtualization
+
+
+---
+
+## fykovo prompts 
+
+@doc/servicegrade-logic.md vidis na logiku funkcionality calc. view popsanou v tomto souboru?
+
+s ohledem na logiku view popsanou v @doc/servicegrade-logic.md, jak bys postupoval na implementovani do view
+novyho sloupce LP090ITS - "Initial timestamp for status 90", ktery se naplni poprve, kdyz se dokladu nastavi
+status 90 ?
+
+---
+
+
+
+
+
