@@ -7,7 +7,10 @@ export default function OutputNode({ data, selected }: NodeProps<NodeData['data'
     <div
       className={`
         px-4 py-2 rounded-lg border-2 min-w-[180px] bg-emerald-50
-        ${selected ? 'border-emerald-500 shadow-lg ring-2 ring-offset-2 ring-emerald-400' : 'border-emerald-300'}
+        ${data.searchMatch === 'node' ? 'ring-4 ring-[#f42c16] border-[#f42c16] bg-red-50 shadow-xl' :
+          data.searchMatch === 'attribute' ? 'ring-4 ring-cyan-400 border-cyan-500 shadow-xl' :
+            selected ? 'border-emerald-500 shadow-lg ring-2 ring-offset-2 ring-emerald-400' : 'border-emerald-300'
+        }
         hover:shadow-md transition-shadow
       `}
     >

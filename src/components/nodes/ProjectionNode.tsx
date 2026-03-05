@@ -7,7 +7,10 @@ export default function ProjectionNode({ data, selected }: NodeProps<NodeData['d
     <div
       className={`
         px-4 py-2 rounded-lg border-2 bg-white min-w-[200px]
-        ${selected ? 'border-blue-500 shadow-lg' : 'border-blue-200'}
+        ${data.searchMatch === 'node' ? 'ring-4 ring-[#f42c16] border-[#f42c16] bg-red-50 shadow-xl' :
+          data.searchMatch === 'attribute' ? 'ring-4 ring-cyan-400 border-cyan-500 shadow-xl' :
+            selected ? 'border-blue-500 shadow-lg ring-2 ring-offset-2 ring-blue-400' : 'border-blue-200'
+        }
         hover:shadow-md transition-shadow
       `}
     >

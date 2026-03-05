@@ -7,7 +7,10 @@ export default function AggregationNode({ data, selected }: NodeProps<NodeData['
     <div
       className={`
         px-4 py-2 rounded-lg border-2 min-w-[200px] bg-green-50
-        ${selected ? 'border-green-500 shadow-lg ring-2 ring-offset-2 ring-green-400' : 'border-green-300'}
+        ${data.searchMatch === 'node' ? 'ring-4 ring-[#f42c16] border-[#f42c16] bg-red-50 shadow-xl' :
+          data.searchMatch === 'attribute' ? 'ring-4 ring-cyan-400 border-cyan-500 shadow-xl' :
+            selected ? 'border-green-500 shadow-lg ring-2 ring-offset-2 ring-green-400' : 'border-green-300'
+        }
         hover:shadow-md transition-shadow
       `}
     >

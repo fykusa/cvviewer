@@ -18,7 +18,10 @@ export default function JoinNode({ data, selected }: NodeProps<NodeData['data']>
       className={`
         px-4 py-2 rounded-lg border-2 min-w-[200px]
         ${getJoinColor()}
-        ${selected ? 'shadow-lg ring-2 ring-offset-2 ring-purple-400' : ''}
+        ${data.searchMatch === 'node' ? 'ring-4 ring-[#f42c16] border-[#f42c16] shadow-xl' :
+          data.searchMatch === 'attribute' ? 'ring-4 ring-cyan-400 border-cyan-500 shadow-xl' :
+            selected ? 'shadow-lg ring-2 ring-offset-2 ring-purple-400' : ''
+        }
         hover:shadow-md transition-shadow
       `}
     >

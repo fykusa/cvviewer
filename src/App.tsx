@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Download, ArrowLeft, LayoutGrid, RefreshCw, BoxSelect } from 'lucide-react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { Download, ArrowLeft, LayoutGrid, RefreshCw, BoxSelect, Search, X } from 'lucide-react';
 import { Node, Edge } from 'reactflow';
 
 import FileUpload from './components/FileUpload';
@@ -24,6 +24,7 @@ function App() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [groupSelectedCount, setGroupSelectedCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const flowRef = useRef<FlowViewerHandle>(null);
   const mergeFileInputRef = useRef<HTMLInputElement>(null);
@@ -162,6 +163,7 @@ function App() {
     setSelectedNode(null);
     setIsSidebarOpen(false);
     setError(null);
+    setSearchQuery('');
     setIsCommentModalOpen(false);
     setIsFilterModalOpen(false);
   }, []);
@@ -316,6 +318,50 @@ function App() {
     setXmlContent(updatedXml);
   }, [xmlContent, fileName, layoutShapes]);
 
+  // Aktualizuje vlastnost searchMatch na uzlech na základě searchQuery
+  const nodesWithSearch = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return nodes.map(node => {
+        if (node.data && node.data.searchMatch !== undefined) {
+          const { searchMatch, ...restData } = node.data;
+          return { ...node, data: restData };
+        }
+        return node;
+      });
+    }
+
+    const lowerQuery = searchQuery.toLowerCase();
+
+    return nodes.map(node => {
+      let currentMatch: 'node' | 'attribute' | null = null;
+      const d = node.data;
+
+      if (!d) return node;
+
+      if ((d.id && d.id.toLowerCase().includes(lowerQuery)) ||
+        (d.label && d.label.toLowerCase().includes(lowerQuery))) {
+        currentMatch = 'node';
+      } else if (d.attributes && d.attributes.length > 0) {
+        const hasAttrMatch = d.attributes.some((attr: any) => attr.id && attr.id.toLowerCase().includes(lowerQuery));
+        if (hasAttrMatch) {
+          currentMatch = 'attribute';
+        }
+      }
+
+      // Vždy vrátit novou referenci node objektu, aby React Flow zaregistroval změnu, i když je null (pokud předtím nebyla)
+      if (d.searchMatch !== currentMatch) {
+        return {
+          ...node,
+          data: {
+            ...d,
+            searchMatch: currentMatch
+          }
+        };
+      }
+      return node;
+    });
+  }, [nodes, searchQuery]);
+
   if (!xmlContent) {
     return <FileUpload onFileLoad={handleFileLoad} error={error} />;
   }
@@ -339,6 +385,27 @@ function App() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Hledací pole */}
+          <div className="relative flex items-center bg-gray-100 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-indigo-500 transition-all border border-gray-200">
+            <Search className="w-4 h-4 text-gray-400 mr-2" />
+            <input
+              type="text"
+              placeholder="Hledat uzly a sloupce..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent border-none outline-none text-sm text-gray-700 w-48 placeholder-gray-400"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="ml-1 p-0.5 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
+                title="Vymazat hledání"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
           <button
             onClick={() => mergeFileInputRef.current?.click()}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors"
@@ -384,7 +451,7 @@ function App() {
         <div className={`flex-1 transition-all ${isSidebarOpen ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
           <FlowViewer
             ref={flowRef}
-            initialNodes={nodes}
+            initialNodes={nodesWithSearch}
             initialEdges={edges}
             onNodeClick={handleNodeClick}
             onGroupDeleted={(gId) => {

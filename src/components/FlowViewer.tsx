@@ -1,4 +1,4 @@
-import React, { useCallback, useImperativeHandle, forwardRef } from 'react';
+import React, { useCallback, useImperativeHandle, forwardRef, useEffect } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -54,6 +54,21 @@ const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
       applyLayout: (newNodes: Node[]) => { setNodes(newNodes); },
       applyEdges: (newEdges: Edge[]) => { setEdges(newEdges); },
     }));
+
+    // Synchronize data (e.g., searchMatch) from prop changes without resetting node positions.
+    // Only runs when initialNodes reference changes (triggered by useMemo in App.tsx).
+    useEffect(() => {
+      setNodes(prev => {
+        const propMap = new Map(initialNodes.map(n => [n.id, n]));
+        return prev.map(n => {
+          const incoming = propMap.get(n.id);
+          if (!incoming) return n;
+          // Preserve live position/selected state but update data
+          return { ...n, data: incoming.data };
+        });
+      });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialNodes]);
 
     const handleNodeClick = useCallback(
       (_event: React.MouseEvent, node: Node) => {

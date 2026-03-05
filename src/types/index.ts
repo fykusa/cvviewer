@@ -101,6 +101,7 @@ export type NodeData = Node & {
     comment?: string;
     filter?: string;
     onCommentClick?: () => void;
+    searchMatch?: 'node' | 'attribute' | null;
   };
 };
 

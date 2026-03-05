@@ -7,7 +7,10 @@ export default function UnionNode({ data, selected }: NodeProps<NodeData['data']
         <div
             className={`
         px-4 py-2 rounded-lg border-2 min-w-[200px] bg-indigo-50
-        ${selected ? 'border-indigo-500 shadow-lg ring-2 ring-offset-2 ring-indigo-400' : 'border-indigo-300'}
+        ${data.searchMatch === 'node' ? 'ring-4 ring-[#f42c16] border-[#f42c16] bg-red-50 shadow-xl' :
+                    data.searchMatch === 'attribute' ? 'ring-4 ring-cyan-400 border-cyan-500 shadow-xl' :
+                        selected ? 'border-indigo-500 shadow-lg ring-2 ring-offset-2 ring-indigo-400' : 'border-indigo-300'
+                }
         hover:shadow-md transition-shadow
       `}
         >
