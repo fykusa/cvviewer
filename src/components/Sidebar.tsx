@@ -3,6 +3,7 @@ import { X, Database, Copy, Layers, GitMerge, ArrowRightCircle, Settings, Shuffl
 import { Node } from 'reactflow';
 import { NodeData } from '../types';
 import FilterViewer from './FilterViewer';
+import JoinModal from './JoinModal';
 
 interface SidebarProps {
   node: Node<NodeData['data']> | null;
@@ -15,6 +16,7 @@ interface SidebarProps {
 
 export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommentModalOpen, isFilterModalOpen, setIsFilterModalOpen }: SidebarProps) {
   const [selectedFormula, setSelectedFormula] = useState<{ name: string, formula: string } | null>(null);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 
   if (!node) {
     return (
@@ -86,6 +88,15 @@ export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommen
                     <Filter className="w-4 h-4 text-orange-600" />
                   </button>
                 )}
+                {data.type === 'JoinView' && data.inputs && data.inputs.length >= 2 && (
+                  <button
+                    onClick={() => setIsJoinModalOpen(true)}
+                    className="p-1 bg-purple-100 hover:bg-purple-200 rounded-md transition-colors"
+                    title="View Join Diagram"
+                  >
+                    <GitMerge className="w-4 h-4 text-purple-600" />
+                  </button>
+                )}
               </div>
               <p className="text-sm text-gray-500">{getTypeLabel()}</p>
             </div>
@@ -121,17 +132,21 @@ export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommen
           </div>
         )}
 
-        {/* Join Type */}
+        {/* Join type quick-info badge — click the icon above to see full diagram */}
         {data.joinType && (
-          <div className="bg-purple-50 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <GitMerge className="w-4 h-4 text-purple-600" />
-              Join Configuration
-            </h4>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Type:</span>
-              <span className="font-semibold text-purple-700">{data.joinType}</span>
-            </div>
+          <div className="bg-purple-50 rounded-lg px-3 py-2 flex items-center justify-between">
+            <span className="text-xs text-purple-600 font-medium flex items-center gap-1.5">
+              <GitMerge className="w-3.5 h-3.5" />
+              {data.joinType}
+            </span>
+            {data.inputs && data.inputs.length >= 2 && (
+              <button
+                onClick={() => setIsJoinModalOpen(true)}
+                className="text-[10px] text-purple-500 hover:text-purple-700 hover:underline transition-colors"
+              >
+                View diagram →
+              </button>
+            )}
           </div>
         )}
 
@@ -305,6 +320,16 @@ export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommen
           </div>
         </div>
       )}
-    </div >
+
+      {/* Join Modal */}
+      {isJoinModalOpen && data.inputs && data.inputs.length >= 2 && (
+        <JoinModal
+          inputs={data.inputs}
+          joinType={data.joinType}
+          nodeLabel={data.label}
+          onClose={() => setIsJoinModalOpen(false)}
+        />
+      )}
+    </div>
   );
 }
