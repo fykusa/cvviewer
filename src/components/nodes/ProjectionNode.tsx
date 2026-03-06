@@ -1,31 +1,36 @@
 import { Handle, Position, NodeProps } from 'reactflow';
 import { Copy, MessageSquare, Filter } from 'lucide-react';
 import { NodeData } from '../../types';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ProjectionNode({ data, selected }: NodeProps<NodeData['data']>) {
+  const { theme } = useTheme();
+  const colors = theme.projection;
+
   return (
     <div
+      style={{ backgroundColor: colors.bg, borderColor: colors.border }}
       className={`
-        px-4 py-2 rounded-lg border-2 bg-white min-w-[200px]
-        ${data.searchMatch === 'node' ? 'ring-4 ring-[#f42c16] border-[#f42c16] bg-red-50 shadow-xl' :
-          data.searchMatch === 'attribute' ? 'ring-4 ring-cyan-400 border-cyan-500 shadow-xl' :
-            selected ? 'border-blue-500 shadow-lg ring-2 ring-offset-2 ring-blue-400' : 'border-blue-200'
+        px-4 py-2 rounded-lg border-2 min-w-[200px]
+        ${data.searchMatch === 'node' ? 'ring-4 ring-[#f42c16] !border-[#f42c16] !bg-red-50 shadow-xl' :
+          data.searchMatch === 'attribute' ? 'ring-4 ring-cyan-400 !border-cyan-500 shadow-xl' :
+            selected ? 'shadow-lg ring-2 ring-offset-2 ring-blue-400' : ''
         }
         hover:shadow-md transition-shadow
       `}
     >
-      <Handle type="target" position={Position.Bottom} className="!bg-blue-500" />
+      <Handle type="target" position={Position.Bottom} style={{ backgroundColor: colors.icon }} className="!border-white" />
 
       <div className="flex items-center gap-2">
-        <Copy className="w-4 h-4 text-blue-600" />
+        <Copy style={{ color: colors.icon }} className="w-4 h-4" />
         <div className="flex-1">
-          <div className="font-semibold text-sm text-gray-800">{data.label}</div>
+          <div style={{ color: colors.text }} className="font-semibold text-sm">{data.label}</div>
           <div className="text-xs text-gray-500">Projection</div>
         </div>
         {data.comment && (
           <div
             title="This node has a comment. Click to read."
-            className="cursor-pointer hover:scale-110 hover:brightness-110 transition-all"
+            className="cursor-pointer hover:scale-110 hover:brightness-110 transition-all opacity-80 hover:opacity-100"
             onClick={(e) => {
               e.stopPropagation();
               window.dispatchEvent(
@@ -33,7 +38,7 @@ export default function ProjectionNode({ data, selected }: NodeProps<NodeData['d
               );
             }}
           >
-            <MessageSquare className="w-5 h-5 text-blue-500 fill-blue-100 drop-shadow-sm" />
+            <MessageSquare style={{ color: colors.icon, fill: colors.bg }} className="w-5 h-5 drop-shadow-sm" />
           </div>
         )}
         {data.filter && (
@@ -62,14 +67,14 @@ export default function ProjectionNode({ data, selected }: NodeProps<NodeData['d
         </div>
       )}
       {data.inputs && data.inputs.length > 0 && (
-        <div className="mt-1 pt-1 border-t border-blue-100">
+        <div style={{ borderTopColor: colors.border }} className="mt-1 pt-1 border-t opacity-50">
           {data.inputs.map((inp: { nodeId: string }, i: number) => (
-            <div key={i} className="text-xs text-blue-600 font-mono truncate">← {inp.nodeId}</div>
+            <div key={i} style={{ color: colors.text }} className="text-xs font-mono truncate">← {inp.nodeId}</div>
           ))}
         </div>
       )}
 
-      <Handle type="source" position={Position.Top} className="!bg-blue-500" />
+      <Handle type="source" position={Position.Top} style={{ backgroundColor: colors.icon }} className="!border-white" />
     </div>
   );
 }

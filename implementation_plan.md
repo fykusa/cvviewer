@@ -34,5 +34,6 @@ Vývojový a implementační deník funkcionalit. Zde sledujeme hotové bloky i 
 
 ## Nové požadavky (Ke zpracování) ⏳
 
+- [x] Nastavení vzhledu aplikace (Ozubené kolečko) — přidána možnost uživatelsky měnit barvy jednotlivých typů uzlů (projection, union, atd.) a výchozí barvy pro skupiny. Zcela přepracováno UI: možnost výběru typu uzlu přes Select Box, ovládání průhlednosti (opacity slider) a plnohodnotný živý náhled přímo v dialogu pomocí vložené instance React Flow. Nastavení se ukládá do `localStorage` a je asynchronně propsáno pomocí vlastního React Contextu (`ThemeContext.tsx`).
+
 - [x] Auto-Layout zachovává skupiny (groupNode) — fix pomocí compound graph (dagre) tak, aby dagre drželo členy skupiny u sebe a nepouštělo tam cizí nody.
-- [x] Větší font pro titulek a popis skupiny — titulek v `GroupNode` je nastaven na `1.4rem` (bez uppercase) a popis na `1.3rem` pro maximální čitelnost.

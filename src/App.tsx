@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { Download, ArrowLeft, LayoutGrid, RefreshCw, BoxSelect, Search, X } from 'lucide-react';
+import { Download, ArrowLeft, LayoutGrid, RefreshCw, BoxSelect, Search, X, Settings } from 'lucide-react';
 import { Node, Edge } from 'reactflow';
 
 import FileUpload from './components/FileUpload';
@@ -7,6 +7,7 @@ import FlowViewer, { FlowViewerHandle } from './components/FlowViewer';
 import GroupModal from './components/GroupModal';
 import GroupSidebar from './components/GroupSidebar';
 import Sidebar from './components/Sidebar';
+import { SettingsModal } from './components/SettingsModal';
 import { parseCalculationView, transformToReactFlow, exportToXml } from './utils/xmlParser';
 import { computeAutoLayout } from './utils/autoLayout';
 import { GroupData, LayoutShape } from './types';
@@ -23,6 +24,7 @@ function App() {
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [groupSelectedCount, setGroupSelectedCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -443,6 +445,15 @@ function App() {
             <Download className="w-4 h-4" />
             <span className="text-sm font-medium">Save Layout</span>
           </button>
+
+          <div className="h-6 w-px bg-gray-300 ml-2" />
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Nastavení vzhledu"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
         </div>
       </header>
 
@@ -498,6 +509,10 @@ function App() {
           onCancel={() => setIsGroupModalOpen(false)}
         />
       )}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 }

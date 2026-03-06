@@ -1,13 +1,15 @@
 import { NodeProps, NodeResizer, useReactFlow } from 'reactflow';
 import { GroupData } from '../../types';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function GroupNode({ id, data, selected }: NodeProps<GroupData>) {
   const { setNodes } = useReactFlow();
+  const { theme } = useTheme();
 
-  const borderColor = data.borderColor || '#fbbf24';
-  const bgColor = data.bgColor || 'rgba(255, 251, 235, 0.4)';
-  const titleColor = data.titleColor || '#92400e';
-  const commentColor = data.commentColor || '#d97706';
+  const borderColor = data.borderColor || theme.group.border || '#fbbf24';
+  const bgColor = data.bgColor || theme.group.bg || 'rgba(255, 251, 235, 0.4)';
+  const titleColor = data.titleColor || theme.group.title || '#92400e';
+  const commentColor = data.commentColor || theme.group.comment || '#d97706';
 
   return (
     <>
