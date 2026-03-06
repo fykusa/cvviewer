@@ -18485,14 +18485,10 @@ if(&quot;VA_STATUS&quot;='A' or &quot;VA_STATUS&quot;='5',&quot;VA_1ST_COMMIT_TS
     <restrictedMeasures/>
     <localDimensions/>
   </logicalModel>
-  <layout>
+    <layout>
     <shapes>
-      <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
-        <upperLeftCorner x="855" y="87"/>
-        <rectangleSize height="0" width="0"/>
-      </shape>
       <shape expanded="true" modelObjectName="VA_history" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="1362" y="2435"/>
+        <upperLeftCorner x="1532" y="2546"/>
         <rectangleSize height="-1" width="-1"/>
       </shape>
       <shape expanded="true" modelObjectName="VL_history" modelObjectNameSpace="CalculationView">
@@ -18504,59 +18500,59 @@ if(&quot;VA_STATUS&quot;='A' or &quot;VA_STATUS&quot;='5',&quot;VA_1ST_COMMIT_TS
         <rectangleSize height="-1" width="-1"/>
       </shape>
       <shape expanded="true" modelObjectName="VL_Delta" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="609" y="3613"/>
+        <upperLeftCorner x="1" y="3948"/>
         <rectangleSize height="64" width="247"/>
       </shape>
       <shape expanded="true" modelObjectName="TG" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="431" y="3535"/>
+        <upperLeftCorner x="340" y="3754"/>
         <rectangleSize height="-1" width="-1"/>
       </shape>
       <shape expanded="true" modelObjectName="TP_TARGETS_PURCHASE_ORDER" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="893" y="3535"/>
+        <upperLeftCorner x="860" y="3754"/>
         <rectangleSize height="-1" width="-1"/>
       </shape>
       <shape expanded="true" modelObjectName="VL_DELTA_VA" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="585" y="3535"/>
+        <upperLeftCorner x="-253" y="3754"/>
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="Delta_mit_zielen" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="585" y="3419"/>
+        <upperLeftCorner x="-243" y="3569"/>
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="UNION_TP_TG_ALL_TARGETS" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="431" y="3419"/>
+        <upperLeftCorner x="899" y="3569"/>
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="Full_Ziele" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="532" y="3285"/>
+        <upperLeftCorner x="933" y="3371"/>
         <rectangleSize height="-1" width="-1"/>
       </shape>
       <shape expanded="true" modelObjectName="VL_EK_Delta" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="1047" y="3535"/>
+        <upperLeftCorner x="7" y="3754"/>
         <rectangleSize height="64" width="241"/>
       </shape>
       <shape expanded="true" modelObjectName="EK_Delta_with_Targets" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="893" y="3419"/>
+        <upperLeftCorner x="156" y="3569"/>
         <rectangleSize height="-1" width="-1"/>
       </shape>
       <shape expanded="true" modelObjectName="VL_DELTA_EK" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="739" y="3535"/>
+        <upperLeftCorner x="600" y="3754"/>
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="VL_EK_Delta_with_Target" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="739" y="3419"/>
+        <upperLeftCorner x="460" y="3569"/>
         <rectangleSize height="-1" width="-1"/>
       </shape>
       <shape expanded="true" modelObjectName="UNION_DELTA" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="712" y="3285"/>
+        <upperLeftCorner x="327" y="3368"/>
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="Union_1" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="634" y="3169"/>
+        <upperLeftCorner x="258" y="3120"/>
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="Projection_1" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="634" y="3091"/>
+        <upperLeftCorner x="218" y="2962"/>
         <rectangleSize height="64" width="140"/>
       </shape>
       <shape expanded="true" modelObjectName="VL_only_Delta" modelObjectNameSpace="CalculationView">
@@ -18596,11 +18592,11 @@ if(&quot;VA_STATUS&quot;='A' or &quot;VA_STATUS&quot;='5',&quot;VA_1ST_COMMIT_TS
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="VA_distinct" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="1516" y="2435"/>
+        <upperLeftCorner x="1686" y="2546"/>
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="VA_only_Delta" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="1516" y="2339"/>
+        <upperLeftCorner x="1686" y="2450"/>
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="Projection_2" modelObjectNameSpace="CalculationView">
@@ -18680,11 +18676,11 @@ if(&quot;VA_STATUS&quot;='A' or &quot;VA_STATUS&quot;='5',&quot;VA_1ST_COMMIT_TS
         <rectangleSize height="-1" width="-1"/>
       </shape>
       <shape expanded="true" modelObjectName="VBFA" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="480" y="3091"/>
+        <upperLeftCorner x="-104" y="3108"/>
         <rectangleSize height="-1" width="-1"/>
       </shape>
       <shape expanded="true" modelObjectName="LT_filter" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="480" y="2995"/>
+        <upperLeftCorner x="-75" y="2875"/>
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="LT_filter_LTA" modelObjectNameSpace="CalculationView">
@@ -18704,7 +18700,7 @@ if(&quot;VA_STATUS&quot;='A' or &quot;VA_STATUS&quot;='5',&quot;VA_1ST_COMMIT_TS
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="LT_filter_KONV" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="526" y="2879"/>
+        <upperLeftCorner x="155" y="2747"/>
         <rectangleSize height="0" width="0"/>
       </shape>
       <shape expanded="true" modelObjectName="KO_only_delta" modelObjectNameSpace="CalculationView">
@@ -19027,10 +19023,36 @@ if(&quot;VA_STATUS&quot;='A' or &quot;VA_STATUS&quot;='5',&quot;VA_1ST_COMMIT_TS
         <upperLeftCorner x="1471" y="245"/>
         <rectangleSize height="-1" width="-1"/>
       </shape>
-      <shape expanded="false" modelObjectName="VA_union_VL" modelObjectNameSpace="CalculationView">
-        <upperLeftCorner x="855" y="165"/>
+      <shape expanded="true" modelObjectName="VA_union_VL" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="896" y="-108"/>
+        <rectangleSize height="0" width="0"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+        <upperLeftCorner x="912" y="-218"/>
         <rectangleSize height="0" width="0"/>
       </shape>
     </shapes>
   </layout>
+<viewerGroups>
+  <group id="group_1772814967105" title="Dalsi Grupa" bgColor="#e5e4fb" titleColor="#0d1691" commentColor="#0657db">
+    <comment>taky popis</comment>
+    <position x="-154" y="2662" width="641" height="614"/>
+    <members>
+      <member nodeId="Union_1"/>
+      <member nodeId="Projection_1"/>
+      <member nodeId="VBFA"/>
+      <member nodeId="LT_filter"/>
+      <member nodeId="LT_filter_KONV"/>
+    </members>
+  </group>
+  <group id="group_1772814940074" title="TEST grupa">
+    <comment>Nejakej popis, co to vsechno dela</comment>
+    <position x="1482" y="2400" width="454" height="310"/>
+    <members>
+      <member nodeId="VA_history"/>
+      <member nodeId="VA_distinct"/>
+      <member nodeId="VA_only_Delta"/>
+    </members>
+  </group>
+</viewerGroups>
 </Calculation:scenario>

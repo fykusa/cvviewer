@@ -300,9 +300,7 @@ export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommen
               </button>
             </div>
             <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-slate-900 rounded-b-xl">
-              <div className="text-sm text-indigo-300 font-mono whitespace-pre-wrap leading-relaxed">
-                {selectedFormula.formula}
-              </div>
+              <FilterViewer code={selectedFormula.formula} />
             </div>
           </div>
         </div>
