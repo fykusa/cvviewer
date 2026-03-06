@@ -1,96 +1,37 @@
-# Layout & Node Improvements
+# HANA CV Viewer - Implementační Plán
 
-Čtyři navazující úpravy pro HANA CV Viewer.
+Vývojový a implementační deník funkcionalit. Zde sledujeme hotové bloky i nově plánované updaty.
 
-## Navrhované změny
+## Dokončeno ✅
 
----
+### Komponenty a renderování grafu
+- [x] Základní parsování `Calculation:scenario` do uzlů a hran React Flow
+- [x] Vlastní React Flow komponenty pro různé typy: `ProjectionView`, `JoinView`, `AggregationView`, `UnionView`, `DataSource` a `Output`
+- [x] Unifikace úchytů hran (handles) - u všech uzlů jsou vstupy směřovány plynule zespodu a výstup ústí zeshora
+- [x] Zobrazení informativních statistik přímo na "kartičkách" uzlů na plátně (počty vstupů, počty atributů a indikátor kalkulovaných sloupců)
+- [x] Extrémní odzoomování plátna - upraven limit `minZoom` na `0.05`
 
-### 1. Union Node komponent (handles zespoda/nahoře)
+### Layout a souřadnice
+- [x] Načítání původních pozic (souřadnic) uzlů přímo z `layout` bloku v XML, kompatibilita souřadnicových systémů zachována 1:1 (bez převracení Y osy)
+- [x] Implementace tlačítka **Auto-Layout** (využívající knihovnu Dagre s algoritmem top-to-bottom BT)
+- [x] Inteligentní Auto-Layout pomocí Dagre: respektování dynamických rozměrů elementů (okraje) přes browser bounding box místo pevných krabiček 220x80px 
+- [x] Ochranný potvrzovací (confirm) dialog před provedením Auto-Layoutu (prevence ztráty těžce naformátovaného stromu)
+- [x] Funkce **Save Layout** - stažení validního XML souboru, do kterého jsou zapsány vaše aktuální nově posunuté souřadnice uzlů pomocí manipulace původního zdrojového textu
 
-**Problém:** `UnionView` typ padá do `default` React Flow nodu — špatné handles a bez stylu.
+### Analýza uzlů a postranní panel (Sidebar / Modal)
+- [x] Odlišení běžných a vypočítaných atributů u uzlů logickým zpracováním XML
+- [x] Vizuální přepracování postranního panelu: atributy reprezentovány kompaktními štítky (badges). Modrá (Tag) pro klasické sloupce a measures; fialová (Calculator) pro "Calculated column"
+- [x] V Sidebaru zobrazení SQL vizuální formule (kalkulačky) s proklikem skrze modal / nebo zobrazení na hover
+- [x] Komentáře uvnitř uzlů reprezentovány proklikávací ikonkou zobrazenou přímo na plátně - otevírající neblokující módál rovnou
 
-#### [NEW] [UnionNode.tsx](file:///d:/AI/VibeCoding/cvviewer/src/components/nodes/UnionNode.tsx)
-- Nový node komponent, stejný styl jako ostatní (fialová/modrá barva, `Shuffle` ikona)
-- `target` handle → `Position.Bottom`, `source` handle → `Position.Top`
-
-#### [MODIFY] [xmlParser.ts](file:///d:/AI/VibeCoding/cvviewer/src/utils/xmlParser.ts)
-- Přidat mapping `UnionView` → `unionNode` (řádek 156–159)
-
-#### [MODIFY] [FlowViewer.tsx](file:///d:/AI/VibeCoding/cvviewer/src/components/FlowViewer.tsx)
-- Registrovat `unionNode` do `nodeTypes`
-
----
-
-### 2. Načítání pozic z XML (oprava)
-
-**Problém:** Parser pozice čte, ale pokud chybí layout pro nod, padnou na `{0,0}` (překryv). HANA layout souřadnice jsou navíc v invertovaném Y (větší Y = výše v grafu → je třeba Y negovat).
-
-#### [MODIFY] [xmlParser.ts](file:///d:/AI/VibeCoding/cvviewer/src/utils/xmlParser.ts)
-- Souřadnice z XML se **nesmí transformovat** — HANA i React Flow mají Y osu dolů, jsou kompatibilní 1:1
-- Fallback pro nody bez layoutu: přiřadit pozici v rámci HANA souřadnicového prostoru (kladné X,Y) tak aby nepřekrývaly existující nody. Tato pozice se zapíše zpět do XML při Save Layout.
-
----
-
-### 3. Auto-Layout tlačítko (dagre)
-
-**Řešení:** Knihovna `dagre` — standardní directed-graph hierarchický layout.
-
-#### [MODIFY] [package.json](file:///d:/AI/VibeCoding/cvviewer/package.json)
-- Přidat závislost `dagre` + `@types/dagre`
-
-#### [NEW] [useAutoLayout.ts](file:///d:/AI/VibeCoding/cvviewer/src/utils/useAutoLayout.ts)
-- Hook přijme aktuální `nodes` a `edges` z React Flow
-- Spustí dagre layout (direction: `TB` = top-to-bottom, odpovídá naší konvenci)
-- Vrátí nové pozice nodů
-
-#### [MODIFY] [FlowViewer.tsx](file:///d:/AI/VibeCoding/cvviewer/src/components/FlowViewer.tsx)
-- Vystavit `onAutoLayout` callback prop
-- Aplikovat nové pozice přes `setNodes`
-
-#### [MODIFY] [App.tsx](file:///d:/AI/VibeCoding/cvviewer/src/App.tsx)
-- Přidat tlačítko **Auto-Layout** vedle Save Layout do headeru
-- Ikona: `LayoutGrid` (lucide)
+### Search & Interaktivita
+- [x] Vyhledávací panel v hlavičce (Search) a real-time filtrace uzlů
+- [x] Vizualní highlight vyhledávaných prvků: tlusté zářivě oranžové/červené (#f42c16) orámování při shodě v názvu uzlu
+- [x] Vizualní highlight při "hluboké shodě" (shoda textu uvnitř nějaké definice sloupce či atributu v daném uzlu) - svítivě tyrkysové orámování
+- [x] Fix ztrácející se pozice v React Flow skrze props-override (zachování stability rozložení při live type-seach)
 
 ---
 
-### 4. Save Layout — uložení pozic zpět do XML
+## Nové požadavky (Ke zpracování) ⏳
 
-**Řešení:** Aktualizovat `<layout>` sekci v XML a spustit download souboru.
-
-#### [MODIFY] [xmlParser.ts](file:///d:/AI/VibeCoding/cvviewer/src/utils/xmlParser.ts)
-- Implementovat `exportToXml(originalXml, nodes)`:
-  - Projít `nodes`, sestavit nové `<shape>` elementy s aktuálními pozicemi
-  - Pozice zapisovat **přímo tak jak jsou** v React Flow (žádná transformace) — HANA X,Y jsou identické
-  - Regex/string replace pro `<layout>` sekci v XML stringu
-
-> [!IMPORTANT]
-> Souřadnice MUSÍ být zpětně kompatibilní s HANA Modeling Tools. Nesmíme transformovat ani invertovat osy.
-
-#### [MODIFY] [FlowViewer.tsx](file:///d:/AI/VibeCoding/cvviewer/src/components/FlowViewer.tsx)
-- Vystavit `onGetCurrentNodes` nebo `ref` pro získání aktuálních pozic nodů
-
-#### [MODIFY] [App.tsx](file:///d:/AI/VibeCoding/cvviewer/src/App.tsx)
-- `handleSave`: zavolat `exportToXml`, spustit browser download (`<a download>`)
-
----
-
-## Pořadí implementace
-
-| Krok | Úprava | Složitost |
-|------|--------|-----------|
-| 1 | Union Node komponent | ⭐ nízká |
-| 2 | Oprava načítání pozic z XML | ⭐⭐ střední |
-| 3 | Auto-Layout (dagre) | ⭐⭐ střední |
-| 4 | Save Layout do XML | ⭐⭐⭐ vyšší |
-
-## Verification Plan
-
-### Manuální testování (po každém kroku)
-
-1. Otevřít **http://localhost:3000/**
-2. Kliknout **Load Example File** (načte `xml_example_minimal.calculationview`)
-3. **Krok 1:** Union node musí mít fialový styl + handles správně (dole vstupy, nahoře výstup)
-4. **Krok 2:** Nody se nesmí překrývat — musí respektovat pozice z XML
-5. **Krok 3:** Kliknout **Auto-Layout** → nody se uspořádají bez překryvu ve stromové struktuře
-6. **Krok 4:** Přesunout nod myší → kliknout **Save Layout** → stáhne se soubor → otevřít v editoru a ověřit nové souřadnice v `<layout>` sekci
+- [ ] *(Tady vznikne místo pro nové úkoly, které mi zadáš)*
