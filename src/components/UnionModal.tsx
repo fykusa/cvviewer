@@ -4,18 +4,17 @@ import { InputConnection } from '../types';
 
 // ─── Layout constants ────────────────────────────────────────────────────────
 const ROW_H = 26;   // px – column row height
-const HDR_H = 36;   // px – input table header height
-const OUT_HDR = 48;   // px – output panel sticky header height
+const HDR_H = 36;   // px – input/output header height
 const SVG_W = 90;   // px – connector zone width
 
 // ─── Per-input colour palette ────────────────────────────────────────────────
 const INPUT_COLORS = [
-    { line: '#6366f1', bg: 'bg-indigo-50', hdr: 'bg-indigo-100 border-indigo-200', text: 'text-indigo-700' },
-    { line: '#0ea5e9', bg: 'bg-sky-50', hdr: 'bg-sky-100 border-sky-200', text: 'text-sky-700' },
-    { line: '#10b981', bg: 'bg-emerald-50', hdr: 'bg-emerald-100 border-emerald-200', text: 'text-emerald-700' },
-    { line: '#f59e0b', bg: 'bg-amber-50', hdr: 'bg-amber-100 border-amber-200', text: 'text-amber-700' },
-    { line: '#ec4899', bg: 'bg-pink-50', hdr: 'bg-pink-100 border-pink-200', text: 'text-pink-700' },
-    { line: '#8b5cf6', bg: 'bg-violet-50', hdr: 'bg-violet-100 border-violet-200', text: 'text-violet-700' },
+    { line: '#6366f1', bg: 'bg-indigo-50', hdr: 'bg-indigo-100 border-indigo-200', text: 'text-indigo-700', ring: 'ring-indigo-400' },
+    { line: '#0ea5e9', bg: 'bg-sky-50', hdr: 'bg-sky-100 border-sky-200', text: 'text-sky-700', ring: 'ring-sky-400' },
+    { line: '#10b981', bg: 'bg-emerald-50', hdr: 'bg-emerald-100 border-emerald-200', text: 'text-emerald-700', ring: 'ring-emerald-400' },
+    { line: '#f59e0b', bg: 'bg-amber-50', hdr: 'bg-amber-100 border-amber-200', text: 'text-amber-700', ring: 'ring-amber-400' },
+    { line: '#ec4899', bg: 'bg-pink-50', hdr: 'bg-pink-100 border-pink-200', text: 'text-pink-700', ring: 'ring-pink-400' },
+    { line: '#8b5cf6', bg: 'bg-violet-50', hdr: 'bg-violet-100 border-violet-200', text: 'text-violet-700', ring: 'ring-violet-400' },
 ];
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -51,6 +50,7 @@ export default function UnionModal({
     onClose,
 }: UnionModalProps) {
     const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+    const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
 
     const toggle = (nodeId: string) =>
         setCollapsed(prev => {
@@ -90,10 +90,10 @@ export default function UnionModal({
 
     // Recompute connections & Y positions based on current collapsed state
     const { svgConns, svgH } = useMemo(() => {
-        const conns: Array<{ srcY: number; dstY: number; color: string }> = [];
+        const conns: Array<{ srcY: number; dstY: number; color: string; target: string }> = [];
 
         let y = 0; // tracks cumulative height of the LEFT panel
-        const outYArr = outputCols.map((_, i) => OUT_HDR + i * ROW_H + ROW_H / 2);
+        const outYArr = outputCols.map((_, i) => HDR_H + i * ROW_H + ROW_H / 2);
 
         blocks.forEach((blk) => {
             const isCollapsed = collapsed.has(blk.nodeId);
@@ -106,7 +106,7 @@ export default function UnionModal({
                     if (col.isMappedToOutput && col.target) {
                         const dstIdx = outputCols.indexOf(col.target);
                         if (dstIdx !== -1) {
-                            conns.push({ srcY: rowCentreY, dstY: outYArr[dstIdx], color });
+                            conns.push({ srcY: rowCentreY, dstY: outYArr[dstIdx], color, target: col.target });
                         }
                     }
                 });
@@ -116,7 +116,7 @@ export default function UnionModal({
 
         // SVG must cover the taller of left or right
         const leftH = y;
-        const rightH = OUT_HDR + outputCols.length * ROW_H;
+        const rightH = HDR_H + outputCols.length * ROW_H;
         const svgH = Math.max(leftH, rightH);
 
         return { svgConns: conns, svgH };
@@ -190,18 +190,29 @@ export default function UnionModal({
                                         </button>
 
                                         {/* Rows */}
-                                        {!isCollapsed && blk.cols.map((col, ri) => (
-                                            <div
-                                                key={ri}
-                                                className={`flex items-center justify-end px-3 border-b border-slate-100 ${col.isMappedToOutput ? 'bg-white' : 'bg-slate-50/30'}`}
-                                                style={{ height: `${ROW_H}px` }}
-                                                title={col.target ? `→ ${col.target}` : col.source}
-                                            >
-                                                <span className={`font-mono text-xs truncate ${col.isMappedToOutput ? 'text-slate-800 font-medium' : 'text-slate-300'}`}>
-                                                    {col.source}
-                                                </span>
-                                            </div>
-                                        ))}
+                                        {!isCollapsed && blk.cols.map((col, ri) => {
+                                            const isSelected = selectedTarget && col.target === selectedTarget;
+                                            const baseBg = col.isMappedToOutput ? 'bg-white hover:bg-slate-50 cursor-pointer' : 'bg-slate-50/30';
+                                            const highlightClasses = isSelected ? `${clr.bg} ring-1 ring-inset ${clr.ring} relative z-10 cursor-pointer` : baseBg;
+
+                                            return (
+                                                <div
+                                                    key={ri}
+                                                    onClick={() => {
+                                                        if (col.target) {
+                                                            setSelectedTarget(prev => prev === col.target ? null : col.target!);
+                                                        }
+                                                    }}
+                                                    className={`flex items-center justify-end px-3 border-b border-slate-100 transition-all ${highlightClasses}`}
+                                                    style={{ height: `${ROW_H}px` }}
+                                                    title={col.target ? `→ ${col.target}` : col.source}
+                                                >
+                                                    <span className={`font-mono text-xs truncate ${col.isMappedToOutput ? (isSelected ? clr.text + ' font-bold' : 'text-slate-800 font-medium') : 'text-slate-300'}`}>
+                                                        {col.source}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 );
                             })}
@@ -225,10 +236,17 @@ export default function UnionModal({
                                     const x2 = SVG_W;
                                     const mid = SVG_W / 2;
                                     const path = `M ${x1} ${conn.srcY} C ${mid} ${conn.srcY}, ${mid} ${conn.dstY}, ${x2} ${conn.dstY}`;
+
+                                    const isHighlighted = selectedTarget === null || conn.target === selectedTarget;
+                                    const baseOp = isHighlighted ? 0.9 : 0.05;
+                                    const glowOp = isHighlighted ? 0.18 : 0;
+
                                     return (
-                                        <g key={i}>
-                                            <path d={path} stroke={conn.color} strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.18" />
-                                            <path d={path} stroke={conn.color} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.9" />
+                                        <g key={i} className="transition-opacity duration-300">
+                                            {glowOp > 0 && (
+                                                <path d={path} stroke={conn.color} strokeWidth="4" fill="none" strokeLinecap="round" opacity={glowOp} />
+                                            )}
+                                            <path d={path} stroke={conn.color} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity={baseOp} />
                                         </g>
                                     );
                                 })}
@@ -240,7 +258,7 @@ export default function UnionModal({
                             {/* Sticky header */}
                             <div
                                 className="sticky top-0 z-10 flex items-center gap-2 px-3 bg-slate-100 border-b border-slate-200"
-                                style={{ height: `${OUT_HDR}px` }}
+                                style={{ height: `${HDR_H}px` }}
                             >
                                 <div className="shrink-0 w-5 h-5 rounded bg-slate-600/10 flex items-center justify-center text-[9px] font-bold text-slate-500 border border-slate-300">
                                     OUT
@@ -248,15 +266,24 @@ export default function UnionModal({
                                 <span className="font-mono text-sm font-bold text-slate-600 truncate">{nodeLabel}</span>
                             </div>
 
-                            {outputCols.map((col, i) => (
-                                <div
-                                    key={i}
-                                    className="flex items-center px-3 border-b border-slate-100 bg-white"
-                                    style={{ height: `${ROW_H}px` }}
-                                >
-                                    <span className="font-mono text-xs text-slate-800 truncate">{col}</span>
-                                </div>
-                            ))}
+                            {outputCols.map((col, i) => {
+                                const isSelected = col === selectedTarget;
+                                const isFaded = selectedTarget !== null && !isSelected;
+
+                                return (
+                                    <div
+                                        key={i}
+                                        onClick={() => setSelectedTarget(prev => prev === col ? null : col)}
+                                        className={`flex items-center px-3 border-b border-slate-100 cursor-pointer transition-all
+                                                    ${isSelected ? 'bg-indigo-50 ring-1 ring-inset ring-indigo-400 relative z-10' : 'bg-white hover:bg-slate-50'}`}
+                                        style={{ height: `${ROW_H}px` }}
+                                    >
+                                        <span className={`font-mono text-xs truncate ${isSelected ? 'text-indigo-800 font-bold' : (isFaded ? 'text-slate-400' : 'text-slate-800')} transition-colors`}>
+                                            {col}
+                                        </span>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
