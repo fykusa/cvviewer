@@ -51,7 +51,7 @@ export default function FileUpload({ onFileLoad, error }: FileUploadProps) {
               <FileText className="w-8 h-8 text-blue-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              HANA Calculation View Viewer
+              HANA CV Viewer <span className="text-base font-normal text-gray-400">v{__APP_VERSION__}</span>
             </h1>
             <p className="text-gray-600">
               Upload a .calculationview XML file to visualize the data flow

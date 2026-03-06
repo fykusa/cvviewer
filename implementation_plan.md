@@ -34,4 +34,5 @@ Vývojový a implementační deník funkcionalit. Zde sledujeme hotové bloky i 
 
 ## Nové požadavky (Ke zpracování) ⏳
 
-- [ ] *(Tady vznikne místo pro nové úkoly, které mi zadáš)*
+- [x] Auto-Layout zachovává skupiny (groupNode) — fix pomocí compound graph (dagre) tak, aby dagre drželo členy skupiny u sebe a nepouštělo tam cizí nody.
+- [x] Větší font pro titulek a popis skupiny — titulek v `GroupNode` je nastaven na `1.4rem` (bez uppercase) a popis na `1.3rem` pro maximální čitelnost.

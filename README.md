@@ -11,14 +11,15 @@ npm run dev -- --port 3000
 
 Open `http://localhost:3000`, load a `.calculationview` file, explore the graph.
 
-## Features (v0.1)
+## Aktuální Funkcionality
 
-- **Parse** SAP HANA Calculation View XML and render as an interactive node graph
-- **Node types:** Projection, Join (inner/left outer/right outer/full outer), Aggregation, Union, DataSource, Output
-- **Node detail:** click any node to open a sidebar with attributes and input connections
-- **Auto-layout:** dagre Bottom-to-Top hierarchical layout with one click
-- **Save Layout:** writes updated node positions back to the original XML (using native Save As dialog when available)
-- **Safe export:** preserves all original XML content; only the `<layout>` section is replaced
+- **Načítání & Zobrazení:** Interaktivní graf pro HANA `Calculation:scenario` XML. Podpora typů Projection, Join, Aggregation, Union, DataSource, Output.
+- **Jednotný datový tok (Bottom-to-Top):** Přehledné toky hran směřující logicky ze spodních úchytů vždy směrem nahoru.
+- **Nabitý Sidebar:** Moderní postranní panel vizuálně oddělující běžné atributy (Tag) od těch počítaných - "Calculated" (Včetně rychlého přístupu ke vzorcům a SQL).
+- **Prohledávání grafu:** Vyhledávací lišta s barevným zvýrazněním. Rychle rozezná, jestli se hledaný výraz nachází v názvu uzlu (červený obrys) nebo hluboko v jeho atributech (tyrkysový obrys).
+- **Chytrý Auto-Layout:** Top-to-Bottom algoritmus s ohledem na reálné prostorové velikosti `DOM` elementů (nedochází k překrývání).
+- **Modální zobrazení Komentářů:** Přímý proklik na komentáře uvnitř uzlů bez nutnosti složitě lovit v sidebaru.
+- **Bezpečný XML Export:** Funkce "Save Layout" čte původní dokument a přepisuje pouze `<layout>` tag čistými, nepřevrácenými daty kompatibilními s HANA systémy.
 
 ## Documentation
 

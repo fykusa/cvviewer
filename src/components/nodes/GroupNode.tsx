@@ -36,9 +36,9 @@ export default function GroupNode({ id, data, selected }: NodeProps<GroupData>) 
         }}
       >
         <div style={{ borderBottom: `1px solid ${borderColor}60` }} className="px-3 py-2">
-          <div style={{ color: titleColor }} className="text-sm font-semibold">{data.label}</div>
+          <div style={{ color: titleColor, fontSize: '1.4rem' }} className="font-bold tracking-wide">{data.label}</div>
           {data.comment && (
-            <div style={{ color: commentColor }} className="text-xs mt-1 whitespace-pre-wrap">
+            <div style={{ color: commentColor, fontSize: '1.3rem' }} className="mt-1 whitespace-pre-wrap leading-relaxed">
               {data.comment}
             </div>
           )}

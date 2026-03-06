@@ -380,7 +380,7 @@ function App() {
           </button>
           <div className="h-6 w-px bg-gray-300" />
           <div>
-            <h1 className="text-lg font-semibold text-gray-900">HANA Calculation View Viewer</h1>
+            <h1 className="text-lg font-semibold text-gray-900">HANA CV Viewer <span className="text-sm font-normal text-gray-400">v{__APP_VERSION__}</span></h1>
             {fileName && <p className="text-xs text-gray-500">{fileName}</p>}
           </div>
         </div>

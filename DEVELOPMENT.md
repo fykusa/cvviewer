@@ -108,14 +108,14 @@ The `AbortError` (user cancelled dialog) is silently swallowed.
 
 ## Code locations for common tasks
 
-| Task | File | Function/area |
-|---|---|---|
+| Task                          | File                         | Function/area |
+|-------------------------------|------------------------------|---------------|
 | Change node visual appearance | `src/components/nodes/*.tsx` | JSX return |
-| Change auto-layout parameters | `src/utils/autoLayout.ts` | `g.setGraph({...})` |
-| Change which nodes are visible | `src/utils/xmlParser.ts` | `transformToReactFlow` |
-| Change how XML is written | `src/utils/xmlParser.ts` | `exportToXml` |
-| Add a new node type | 1. Add `.tsx` in `nodes/`, 2. Register in `FlowViewer.tsx → nodeTypes`, 3. Add mapping in `transformToReactFlow` |
-| Add state to App | `src/App.tsx` | top-level `useState` calls |
+| Change auto-layout parameters | `src/utils/autoLayout.ts`    | `g.setGraph({...})` |
+| Change which nodes are visible | `src/utils/xmlParser.ts`    | `transformToReactFlow` |
+| Change how XML is written     | `src/utils/xmlParser.ts`     | `exportToXml` |
+| Add a new node type           | 1. Add `.tsx` in `nodes/`, 2. Register in `FlowViewer.tsx → nodeTypes`, 3. Add mapping in `transformToReactFlow` |
+| Add state to App              | `src/App.tsx`                | top-level `useState` calls |
 | Change Sidebar content | `src/components/Sidebar.tsx` | — |
 
 ---
@@ -147,29 +147,5 @@ No server-side code.
 
 ---
 
-## Known limitations (v0.1)
-
-- No node editing — positions only; attributes are read-only in Sidebar
-- Auto-layout overwrites all manual positions (confirm dialog warns user)
-- `fitView` is always on — absolute canvas position is not preserved across sessions
-- Only `DATA_BASE_TABLE` DataSource type is handled; other types render as DataSourceNode
-- No support for calculated columns visible in graph edges
-- Large files (1000+ nodes) may be slow to render; no virtualization
-
-
----
-
-## fykovo prompts 
-
-@doc/servicegrade-logic.md vidis na logiku funkcionality calc. view popsanou v tomto souboru?
-
-s ohledem na logiku view popsanou v @doc/servicegrade-logic.md, jak bys postupoval na implementovani do view
-novyho sloupce LP090ITS - "Initial timestamp for status 90", ktery se naplni poprve, kdyz se dokladu nastavi
-status 90 ?
-
----
-
-
-
-
-
+## AI Assistant Rules
+- **Po implementaci nějaké zásadní funkcionality aktualizuj s touto funkcionalitou soubor `README.md` a `IMPLEMENTATION_PLAN.md`.**
