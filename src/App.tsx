@@ -492,6 +492,7 @@ function App() {
           <div className="w-80 flex-shrink-0">
             <Sidebar
               node={selectedNode}
+              allNodes={nodesWithSearch}
               onClose={() => setIsSidebarOpen(false)}
               isCommentModalOpen={isCommentModalOpen}
               setIsCommentModalOpen={setIsCommentModalOpen}

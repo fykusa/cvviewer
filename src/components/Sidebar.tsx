@@ -7,6 +7,7 @@ import JoinModal from './JoinModal';
 
 interface SidebarProps {
   node: Node<NodeData['data']> | null;
+  allNodes?: Node[];
   onClose: () => void;
   isCommentModalOpen: boolean;
   setIsCommentModalOpen: (open: boolean) => void;
@@ -14,7 +15,7 @@ interface SidebarProps {
   setIsFilterModalOpen: (open: boolean) => void;
 }
 
-export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommentModalOpen, isFilterModalOpen, setIsFilterModalOpen }: SidebarProps) {
+export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, setIsCommentModalOpen, isFilterModalOpen, setIsFilterModalOpen }: SidebarProps) {
   const [selectedFormula, setSelectedFormula] = useState<{ name: string, formula: string } | null>(null);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 
@@ -66,7 +67,17 @@ export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommen
         {/* Basic Info */}
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-gray-100 rounded-lg">{getIcon()}</div>
+            {data.type === 'JoinView' && data.inputs && data.inputs.length >= 2 ? (
+              <button
+                onClick={() => setIsJoinModalOpen(true)}
+                className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors cursor-pointer"
+                title="View Join Diagram"
+              >
+                {getIcon()}
+              </button>
+            ) : (
+              <div className="p-2 bg-gray-100 rounded-lg">{getIcon()}</div>
+            )}
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-gray-900">{data.label}</h3>
@@ -88,15 +99,7 @@ export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommen
                     <Filter className="w-4 h-4 text-orange-600" />
                   </button>
                 )}
-                {data.type === 'JoinView' && data.inputs && data.inputs.length >= 2 && (
-                  <button
-                    onClick={() => setIsJoinModalOpen(true)}
-                    className="p-1 bg-purple-100 hover:bg-purple-200 rounded-md transition-colors"
-                    title="View Join Diagram"
-                  >
-                    <GitMerge className="w-4 h-4 text-purple-600" />
-                  </button>
-                )}
+
               </div>
               <p className="text-sm text-gray-500">{getTypeLabel()}</p>
             </div>
@@ -322,14 +325,28 @@ export default function Sidebar({ node, onClose, isCommentModalOpen, setIsCommen
       )}
 
       {/* Join Modal */}
-      {isJoinModalOpen && data.inputs && data.inputs.length >= 2 && (
-        <JoinModal
-          inputs={data.inputs}
-          joinType={data.joinType}
-          nodeLabel={data.label}
-          onClose={() => setIsJoinModalOpen(false)}
-        />
-      )}
+      {isJoinModalOpen && data.inputs && data.inputs.length >= 2 && (() => {
+        // Build map of sourceNodeId → attributes for the two input nodes
+        const sourceNodesData: Record<string, { id: string }[]> = {};
+        if (allNodes) {
+          data.inputs.forEach((inp: { nodeId: string }) => {
+            const srcNode = allNodes.find(n => n.id === inp.nodeId);
+            if (srcNode?.data?.attributes) {
+              sourceNodesData[inp.nodeId] = srcNode.data.attributes;
+            }
+          });
+        }
+        return (
+          <JoinModal
+            inputs={data.inputs}
+            joinType={data.joinType}
+            nodeLabel={data.label}
+            viewAttributes={data.attributes}
+            sourceNodesData={sourceNodesData}
+            onClose={() => setIsJoinModalOpen(false)}
+          />
+        );
+      })()}
     </div>
   );
 }

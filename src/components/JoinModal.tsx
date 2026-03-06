@@ -1,13 +1,11 @@
 import { useMemo } from 'react';
-import { X, GitMerge } from 'lucide-react';
+import { X } from 'lucide-react';
 import { InputConnection } from '../types';
 
 // ─── Layout constants ───────────────────────────────────────────────────────
 const ROW_H = 28;  // px – height of each column row
 const HDR_H = 48;  // px – height of the table-name header row
 const SVG_W = 110; // px – width of the SVG connector zone
-const DOT_R = 4.5; // px – radius of colored join-key dots
-const RING_R = 3;   // px – radius of passthrough-column ring
 
 // ─── Join-type visual config ────────────────────────────────────────────────
 type JTypeCfg = {
@@ -58,9 +56,11 @@ const FALLBACK_CFG: JTypeCfg = {
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface ColEntry {
-    source: string;   // column name in the source node
-    target: string;   // column name forwarded to this JoinView's output
-    isJoinKey: boolean;  // same target exists in both inputs → join condition
+    source: string;   // column name in source node
+    joinKeyTarget?: string;   // join-condition target (exists in both sides)
+    isInMapping: boolean;  // column appears in input.mapping at all
+    isJoinKey: boolean;  // column participates in join condition
+    isMappedToOutput: boolean;  // at least one mapping target is in viewAttributes
 }
 
 interface Connection {
@@ -106,60 +106,98 @@ interface JoinModalProps {
     inputs: InputConnection[];
     joinType?: string;
     nodeLabel: string;
+    viewAttributes?: { id: string }[];           // this JoinView's output columns
+    sourceNodesData?: Record<string, { id: string }[]>; // nodeId → that node's output columns
     onClose: () => void;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
-export default function JoinModal({ inputs, joinType, nodeLabel, onClose }: JoinModalProps) {
+export default function JoinModal({ inputs, joinType, nodeLabel, viewAttributes, sourceNodesData, onClose }: JoinModalProps) {
+    // Output columns of this JoinView — computed outside memo so React sees latest prop
+    const outputTargets = new Set((viewAttributes ?? []).map(a => a.id));
+
     const data = useMemo(() => {
         if (!inputs || inputs.length < 2) return null;
 
-        const left = inputs[0];
-        const right = inputs[1];
+        const leftInput = inputs[0];
+        const rightInput = inputs[1];
 
-        // target-name sets per side
-        const leftTargets = new Set((left.mapping ?? []).map(m => m.target));
-        const rightTargets = new Set((right.mapping ?? []).map(m => m.target));
+        // targets per side
+        const leftTargets = new Set((leftInput.mapping ?? []).map(m => m.target));
+        const rightTargets = new Set((rightInput.mapping ?? []).map(m => m.target));
 
-        // A target present in BOTH inputs → it is a join-key column
+        // Targets that appear in BOTH sides → join condition
         const joinKeyTargets = new Set([...leftTargets].filter(t => rightTargets.has(t)));
 
-        const leftCols: ColEntry[] = (left.mapping ?? []).map(m => ({
-            source: m.source,
-            target: m.target,
-            isJoinKey: joinKeyTargets.has(m.target),
-        }));
+        // ── Helper: build deduped ColEntry list for one side ──────────────────
+        // Priority order: source node columns (if available) first; fallback to mapping.
+        // Deduplication: one entry per unique source column name.
+        function buildCols(input: InputConnection): ColEntry[] {
+            const mapping = input.mapping ?? [];
 
-        const rightCols: ColEntry[] = (right.mapping ?? []).map(m => ({
-            source: m.source,
-            target: m.target,
-            isJoinKey: joinKeyTargets.has(m.target),
-        }));
+            // map: source → { joinKeyTarget, isMappedToOutput, isJoinKey }
+            const sourceMap = new Map<string, { joinKeyTarget?: string; isMappedToOutput: boolean; isJoinKey: boolean }>();
+            mapping.forEach(m => {
+                const existing = sourceMap.get(m.source);
+                const isJK = joinKeyTargets.has(m.target);
+                const isMTO = outputTargets.has(m.target);
+                if (!existing) {
+                    sourceMap.set(m.source, {
+                        joinKeyTarget: isJK ? m.target : undefined,
+                        isMappedToOutput: isMTO,
+                        isJoinKey: isJK,
+                    });
+                } else {
+                    if (isJK) { existing.isJoinKey = true; existing.joinKeyTarget = m.target; }
+                    if (isMTO) existing.isMappedToOutput = true;
+                }
+            });
 
-        // Build (leftIdx, rightIdx) connection pairs
+            // Full column list from source node (if available)
+            const srcAttrs = sourceNodesData?.[input.nodeId];
+            const allSources: string[] = srcAttrs
+                ? srcAttrs.map(a => a.id)   // original order from source node
+                : [...sourceMap.keys()];    // fallback: only what's in mapping
+
+            return allSources.map(source => {
+                const info = sourceMap.get(source);
+                return {
+                    source,
+                    joinKeyTarget: info?.joinKeyTarget,
+                    isInMapping: sourceMap.has(source),
+                    isJoinKey: info?.isJoinKey ?? false,
+                    isMappedToOutput: info?.isMappedToOutput ?? false,
+                };
+            });
+        }
+
+        const leftCols = buildCols(leftInput);
+        const rightCols = buildCols(rightInput);
+
+        // Connections: match on joinKeyTarget between left and right
         const connections: Connection[] = [];
         leftCols.forEach((col, leftIdx) => {
-            if (col.isJoinKey) {
-                const rightIdx = rightCols.findIndex(rc => rc.target === col.target);
-                if (rightIdx !== -1) connections.push({ leftIdx, rightIdx, target: col.target });
+            if (col.isJoinKey && col.joinKeyTarget) {
+                const rightIdx = rightCols.findIndex(rc => rc.joinKeyTarget === col.joinKeyTarget);
+                if (rightIdx !== -1) connections.push({ leftIdx, rightIdx, target: col.joinKeyTarget });
             }
         });
 
         return {
-            leftTable: left.nodeId,
-            rightTable: right.nodeId,
+            leftTable: leftInput.nodeId,
+            rightTable: rightInput.nodeId,
             leftCols,
             rightCols,
             connections,
         };
-    }, [inputs]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [inputs, sourceNodesData, viewAttributes]);
 
     if (!data) return null;
 
     const cfg = JTYPE_MAP[joinType ?? ''] ?? FALLBACK_CFG;
     const { leftTable, rightTable, leftCols, rightCols, connections } = data;
 
-    // SVG must be tall enough to cover the longer of the two lists
     const totalH = HDR_H + Math.max(leftCols.length, rightCols.length) * ROW_H;
     const midX = SVG_W / 2;
 
@@ -203,21 +241,6 @@ export default function JoinModal({ inputs, joinType, nodeLabel, onClose }: Join
                     </div>
                 </div>
 
-                {/* ─── Legend ────────────────────────────────────────────────────── */}
-                <div className="flex items-center gap-6 px-5 py-2 bg-slate-50 border-b border-slate-100 text-xs text-slate-500">
-                    <div className="flex items-center gap-1.5">
-                        <svg width="10" height="10">
-                            <circle cx="5" cy="5" r="4" fill={cfg.dotColor} />
-                        </svg>
-                        Join condition (mapped to both sides)
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <svg width="10" height="10">
-                            <circle cx="5" cy="5" r="3.5" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
-                        </svg>
-                        Passthrough (only one side)
-                    </div>
-                </div>
 
                 {/* ─── Diagram ───────────────────────────────────────────────────── */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -241,39 +264,16 @@ export default function JoinModal({ inputs, joinType, nodeLabel, onClose }: Join
                             {leftCols.map((col, i) => (
                                 <div
                                     key={i}
-                                    className={`flex items-center justify-end gap-2 px-4 border-b border-r border-slate-100 transition-colors ${col.isJoinKey
-                                            ? 'bg-white hover:bg-blue-50/40'
-                                            : 'bg-slate-50/40 hover:bg-slate-100/60'
-                                        }`}
+                                    className={`flex items-center justify-end px-4 border-b border-r border-slate-100 transition-colors ${col.isMappedToOutput ? 'bg-white' : 'bg-slate-50/30'}`}
                                     style={{ height: `${ROW_H}px` }}
-                                    title={`→ ${col.target}`}
+                                    title={col.joinKeyTarget ? `→ ${col.joinKeyTarget}` : col.source}
                                 >
-                                    <span
-                                        className={`font-mono text-xs truncate ${col.isJoinKey
-                                                ? 'text-slate-800 font-semibold'
-                                                : 'text-slate-400'
-                                            }`}
-                                    >
+                                    <span className={`font-mono text-xs truncate ${col.isMappedToOutput
+                                        ? 'text-slate-800 font-medium'
+                                        : 'text-slate-300'
+                                        }`}>
                                         {col.source}
                                     </span>
-                                    {/* Dot anchored to the right edge (faces the SVG) */}
-                                    <div className="shrink-0 flex items-center justify-center" style={{ width: `${DOT_R * 2 + 2}px` }}>
-                                        {col.isJoinKey ? (
-                                            <svg width={DOT_R * 2 + 2} height={DOT_R * 2 + 2}>
-                                                <circle
-                                                    cx={DOT_R + 1} cy={DOT_R + 1} r={DOT_R}
-                                                    fill={cfg.dotColor}
-                                                />
-                                            </svg>
-                                        ) : (
-                                            <svg width={RING_R * 2 + 2} height={RING_R * 2 + 2}>
-                                                <circle
-                                                    cx={RING_R + 1} cy={RING_R + 1} r={RING_R}
-                                                    fill="white" stroke="#cbd5e1" strokeWidth="1.5"
-                                                />
-                                            </svg>
-                                        )}
-                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -338,37 +338,14 @@ export default function JoinModal({ inputs, joinType, nodeLabel, onClose }: Join
                             {rightCols.map((col, i) => (
                                 <div
                                     key={i}
-                                    className={`flex items-center gap-2 px-4 border-b border-l border-slate-100 transition-colors ${col.isJoinKey
-                                            ? 'bg-white hover:bg-blue-50/40'
-                                            : 'bg-slate-50/40 hover:bg-slate-100/60'
-                                        }`}
+                                    className={`flex items-center px-4 border-b border-l border-slate-100 transition-colors ${col.isMappedToOutput ? 'bg-white' : 'bg-slate-50/30'}`}
                                     style={{ height: `${ROW_H}px` }}
-                                    title={`← ${col.target}`}
+                                    title={col.joinKeyTarget ? `← ${col.joinKeyTarget}` : col.source}
                                 >
-                                    {/* Dot anchored to the left edge (faces the SVG) */}
-                                    <div className="shrink-0 flex items-center justify-center" style={{ width: `${DOT_R * 2 + 2}px` }}>
-                                        {col.isJoinKey ? (
-                                            <svg width={DOT_R * 2 + 2} height={DOT_R * 2 + 2}>
-                                                <circle
-                                                    cx={DOT_R + 1} cy={DOT_R + 1} r={DOT_R}
-                                                    fill={cfg.dotColor}
-                                                />
-                                            </svg>
-                                        ) : (
-                                            <svg width={RING_R * 2 + 2} height={RING_R * 2 + 2}>
-                                                <circle
-                                                    cx={RING_R + 1} cy={RING_R + 1} r={RING_R}
-                                                    fill="white" stroke="#cbd5e1" strokeWidth="1.5"
-                                                />
-                                            </svg>
-                                        )}
-                                    </div>
-                                    <span
-                                        className={`font-mono text-xs truncate ${col.isJoinKey
-                                                ? 'text-slate-800 font-semibold'
-                                                : 'text-slate-400'
-                                            }`}
-                                    >
+                                    <span className={`font-mono text-xs truncate ${col.isMappedToOutput
+                                        ? 'text-slate-800 font-medium'
+                                        : 'text-slate-300'
+                                        }`}>
                                         {col.source}
                                     </span>
                                 </div>
@@ -379,13 +356,16 @@ export default function JoinModal({ inputs, joinType, nodeLabel, onClose }: Join
                 </div>
 
                 {/* ─── Footer stats ──────────────────────────────────────────────── */}
-                <div className="flex items-center justify-between px-5 py-2.5 border-t border-slate-100 bg-slate-50 rounded-b-xl text-xs text-slate-400">
-                    <span className="font-mono truncate">{leftTable}</span>
-                    <span className="mx-4 shrink-0">
-                        <GitMerge className="w-3.5 h-3.5 inline mr-1" style={{ color: cfg.dotColor }} />
-                        {connections.length} / {Math.max(leftCols.length, rightCols.length)} columns joined
+                <div className="flex items-center px-5 py-2.5 border-t border-slate-100 bg-slate-50 rounded-b-xl text-xs">
+                    <span className="font-mono font-semibold" style={{ color: cfg.dotColor }}>
+                        {leftCols.filter(c => c.isMappedToOutput).length}
+                        <span className="text-slate-400 font-normal">/{leftCols.length}</span>
                     </span>
-                    <span className="font-mono truncate text-right">{rightTable}</span>
+                    <span className="flex-1" />
+                    <span className="font-mono font-semibold text-right" style={{ color: cfg.dotColor }}>
+                        {rightCols.filter(c => c.isMappedToOutput).length}
+                        <span className="text-slate-400 font-normal">/{rightCols.length}</span>
+                    </span>
                 </div>
 
             </div>
