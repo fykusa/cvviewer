@@ -4,6 +4,7 @@ import { Node } from 'reactflow';
 import { NodeData } from '../types';
 import FilterViewer from './FilterViewer';
 import JoinModal from './JoinModal';
+import UnionModal from './UnionModal';
 
 interface SidebarProps {
   node: Node<NodeData['data']> | null;
@@ -18,6 +19,7 @@ interface SidebarProps {
 export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, setIsCommentModalOpen, isFilterModalOpen, setIsFilterModalOpen }: SidebarProps) {
   const [selectedFormula, setSelectedFormula] = useState<{ name: string, formula: string } | null>(null);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [isUnionModalOpen, setIsUnionModalOpen] = useState(false);
 
   if (!node) {
     return (
@@ -72,6 +74,14 @@ export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, s
                 onClick={() => setIsJoinModalOpen(true)}
                 className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors cursor-pointer"
                 title="View Join Diagram"
+              >
+                {getIcon()}
+              </button>
+            ) : data.type === 'UnionView' && data.inputs && data.inputs.length >= 1 ? (
+              <button
+                onClick={() => setIsUnionModalOpen(true)}
+                className="p-2 bg-indigo-100 hover:bg-indigo-200 rounded-lg transition-colors cursor-pointer"
+                title="View Union Diagram"
               >
                 {getIcon()}
               </button>
@@ -344,6 +354,29 @@ export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, s
             viewAttributes={data.attributes}
             sourceNodesData={sourceNodesData}
             onClose={() => setIsJoinModalOpen(false)}
+          />
+        );
+      })()}
+
+      {/* Union Modal */}
+      {isUnionModalOpen && data.inputs && (() => {
+        // Build map of sourceNodeId → attributes for the input nodes
+        const sourceNodesData: Record<string, { id: string }[]> = {};
+        if (allNodes) {
+          data.inputs.forEach((inp: { nodeId: string }) => {
+            const srcNode = allNodes.find(n => n.id === inp.nodeId);
+            if (srcNode?.data?.attributes) {
+              sourceNodesData[inp.nodeId] = srcNode.data.attributes;
+            }
+          });
+        }
+        return (
+          <UnionModal
+            inputs={data.inputs}
+            nodeLabel={data.label}
+            viewAttributes={data.attributes}
+            sourceNodesData={sourceNodesData}
+            onClose={() => setIsUnionModalOpen(false)}
           />
         );
       })()}
