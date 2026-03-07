@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { X, ChevronDown, ChevronRight, Shuffle } from 'lucide-react';
+import { X, ChevronDown, ChevronRight, Shuffle, Copy } from 'lucide-react';
 import { InputConnection } from '../types';
 
 // ─── Layout constants ────────────────────────────────────────────────────────
@@ -36,6 +36,7 @@ interface InputBlock {
 interface UnionModalProps {
     inputs: InputConnection[];
     nodeLabel: string;
+    nodeType?: string; // e.g. 'UnionView' | 'ProjectionView'
     viewAttributes?: { id: string }[];
     sourceNodesData?: Record<string, { id: string }[]>;
     onClose: () => void;
@@ -45,6 +46,7 @@ interface UnionModalProps {
 export default function UnionModal({
     inputs,
     nodeLabel,
+    nodeType = 'UnionView',
     viewAttributes,
     sourceNodesData,
     onClose,
@@ -137,18 +139,26 @@ export default function UnionModal({
                 onClick={e => e.stopPropagation()}
             >
                 {/* ── Header ─────────────────────────────────────────────────── */}
-                <div className="flex items-center justify-between px-5 py-3 border-b bg-indigo-50 rounded-t-xl">
+                <div className={`flex items-center justify-between px-5 py-3 border-b rounded-t-xl ${nodeType === 'ProjectionView' ? 'bg-blue-50 border-blue-100' : 'bg-indigo-50 border-indigo-100'}`}>
                     <div className="flex items-center gap-3 min-w-0">
-                        <Shuffle className="w-5 h-5 text-indigo-600 shrink-0" />
-                        <h2 className="text-base font-semibold text-slate-800 whitespace-nowrap">Union Diagram:</h2>
+                        {nodeType === 'ProjectionView'
+                            ? <Copy className="w-5 h-5 text-blue-600 shrink-0" />
+                            : <Shuffle className="w-5 h-5 text-indigo-600 shrink-0" />
+                        }
+                        <h2 className="text-base font-semibold text-slate-800 whitespace-nowrap">
+                            {nodeType === 'ProjectionView' ? 'Projection Diagram:' : 'Union Diagram:'}
+                        </h2>
                         <span
                             className="font-mono text-sm px-2 py-0.5 rounded border bg-white/80 text-slate-700 truncate max-w-[220px]"
                             title={nodeLabel}
                         >
                             {nodeLabel}
                         </span>
-                        <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-1 rounded border bg-indigo-100 text-indigo-800 border-indigo-200 whitespace-nowrap">
-                            UNION
+                        <span className={`text-[9px] font-bold tracking-widest uppercase px-2 py-1 rounded border whitespace-nowrap ${nodeType === 'ProjectionView'
+                                ? 'bg-blue-100 text-blue-800 border-blue-200'
+                                : 'bg-indigo-100 text-indigo-800 border-indigo-200'
+                            }`}>
+                            {nodeType === 'ProjectionView' ? 'PROJECTION' : 'UNION'}
                         </span>
                     </div>
                     <div className="flex items-center gap-3 ml-4 shrink-0">

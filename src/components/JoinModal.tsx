@@ -132,7 +132,7 @@ export default function JoinModal({ inputs, joinType, nodeLabel, viewAttributes,
         // ── Helper: build deduped ColEntry list for one side ──────────────────
         // Priority order: source node columns (if available) first; fallback to mapping.
         // Deduplication: one entry per unique source column name.
-        function buildCols(input: InputConnection): ColEntry[] {
+        function buildCols(input: InputConnection, isLeft: boolean): ColEntry[] {
             const mapping = input.mapping ?? [];
 
             // map: source → { joinKeyTarget, isMappedToOutput, isJoinKey }
@@ -140,7 +140,13 @@ export default function JoinModal({ inputs, joinType, nodeLabel, viewAttributes,
             mapping.forEach(m => {
                 const existing = sourceMap.get(m.source);
                 const isJK = joinKeyTargets.has(m.target);
-                const isMTO = outputTargets.has(m.target);
+
+                // If it's a join key, we arbitrarily consider only the left side as truly "mapped to output"
+                // visually, to avoid duplicating bold highlights for both tables.
+                let isMTO = outputTargets.has(m.target);
+                if (isJK && !isLeft) {
+                    isMTO = false;
+                }
                 if (!existing) {
                     sourceMap.set(m.source, {
                         joinKeyTarget: isJK ? m.target : undefined,
@@ -171,8 +177,8 @@ export default function JoinModal({ inputs, joinType, nodeLabel, viewAttributes,
             });
         }
 
-        const leftCols = buildCols(leftInput);
-        const rightCols = buildCols(rightInput);
+        const leftCols = buildCols(leftInput, true);
+        const rightCols = buildCols(rightInput, false);
 
         // Connections: match on joinKeyTarget between left and right
         const connections: Connection[] = [];

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { X, Database, Copy, Layers, GitMerge, ArrowRightCircle, Settings, Shuffle, MessageSquare, Tag, Calculator, Filter } from 'lucide-react';
 import { Node } from 'reactflow';
 import { NodeData } from '../types';
@@ -20,6 +20,7 @@ export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, s
   const [selectedFormula, setSelectedFormula] = useState<{ name: string, formula: string } | null>(null);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isUnionModalOpen, setIsUnionModalOpen] = useState(false);
+  const [isProjectionModalOpen, setIsProjectionModalOpen] = useState(false);
 
   if (!node) {
     return (
@@ -30,6 +31,99 @@ export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, s
   }
 
   const data = node.data;
+
+  // Build the combined list of attributes for the sidebar
+  const combinedAttributes = useMemo(() => {
+    if (!data) return { list: [], hasInputs: false };
+
+    // Output target set
+    const outputTargetSet = new Set((data.attributes || []).map((a: any) => a.id));
+    const outMap = new Map();
+    const isJoin = data.type === 'JoinView';
+
+    // 1. If we have input sources, get their columns and mappings
+    if (data.inputs && data.inputs.length > 0) {
+      data.inputs.forEach((inp: any) => {
+        const srcNode = allNodes?.find(n => n.id === inp.nodeId);
+        const srcCols = srcNode?.data?.attributes?.map((a: any) => a.id) || [];
+        const mapping = inp.mapping || [];
+        const sourcePrefix = inp.nodeId ? `${inp.nodeId}.` : '';
+
+        // Add from all source columns
+        srcCols.forEach((src: string) => {
+          const m = mapping.find((x: any) => x.source === src);
+          const target = m ? m.target : undefined;
+          const outKey = target || src;
+          const sourceName = `${sourcePrefix}${src}`;
+
+          if (!outMap.has(outKey)) {
+            outMap.set(outKey, {
+              id: outKey,
+              target: target,
+              sources: new Set([sourceName]),
+              isMapped: target ? outputTargetSet.has(target) : false,
+              isCalculated: false,
+            });
+          } else {
+            if (!isJoin) {
+              outMap.get(outKey).sources.add(sourceName);
+            }
+          }
+        });
+
+        // Add from any mappings not caught by source columns
+        mapping.forEach((m: any) => {
+          if (!srcCols.includes(m.source)) {
+            const outKey = m.target || m.source;
+            const sourceName = `${sourcePrefix}${m.source}`;
+            if (!outMap.has(outKey)) {
+              outMap.set(outKey, {
+                id: outKey,
+                target: m.target,
+                sources: new Set([sourceName]),
+                isMapped: m.target ? outputTargetSet.has(m.target) : false,
+                isCalculated: false,
+              });
+            } else {
+              if (!isJoin) {
+                outMap.get(outKey).sources.add(sourceName);
+              }
+            }
+          }
+        });
+      });
+    }
+
+    // 2. Add natively defined attributes (e.g. calculated fields or fields for base tables)
+    (data.attributes || []).forEach((attr: any) => {
+      if (attr.isCalculated) {
+        outMap.set(attr.id, {
+          id: attr.id,
+          target: attr.id,
+          sources: new Set([]),
+          isMapped: true,
+          isCalculated: true,
+          formula: attr.formula,
+          datatype: attr.datatype
+        });
+      } else {
+        if (!outMap.has(attr.id)) {
+          outMap.set(attr.id, {
+            id: attr.id,
+            target: attr.id,
+            sources: new Set([attr.id]),
+            isMapped: true, // It is in local attributes, so it is mapped
+            isCalculated: false,
+            datatype: attr.datatype
+          });
+        } else {
+          outMap.get(attr.id).datatype = attr.datatype;
+        }
+      }
+    });
+
+    return { list: Array.from(outMap.values()), hasInputs: !!(data.inputs && data.inputs.length > 0) };
+  }, [data, allNodes]);
 
   const getIcon = () => {
     switch (data.type) {
@@ -85,6 +179,14 @@ export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, s
               >
                 {getIcon()}
               </button>
+            ) : data.type === 'ProjectionView' && data.inputs && data.inputs.length >= 1 ? (
+              <button
+                onClick={() => setIsProjectionModalOpen(true)}
+                className="p-2 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors cursor-pointer"
+                title="View Projection Diagram"
+              >
+                {getIcon()}
+              </button>
             ) : (
               <div className="p-2 bg-gray-100 rounded-lg">{getIcon()}</div>
             )}
@@ -113,9 +215,6 @@ export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, s
               </div>
               <p className="text-sm text-gray-500">{getTypeLabel()}</p>
             </div>
-          </div>
-          <div className="text-xs text-gray-400 bg-gray-50 px-3 py-2 rounded-md">
-            ID: {data.id}
           </div>
         </div>
 
@@ -164,47 +263,61 @@ export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, s
         )}
 
         {/* Attributes */}
-        {data.attributes && data.attributes.length > 0 && (
+        {combinedAttributes.list.length > 0 && (
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <Settings className="w-4 h-4" />
-              Attributes ({data.attributes.length})
+              Attributes ({combinedAttributes.list.length})
             </h4>
             <div className="max-h-[55vh] overflow-y-auto custom-scrollbar pr-1">
               <div className="space-y-1">
-                {data.attributes.map((attr: { id: string; datatype?: string; isCalculated?: boolean; formula?: string }, idx: number) => (
-                  <div
-                    key={idx}
-                    className={`flex items-center gap-2 px-2 py-1.5 rounded border transition-colors ${attr.isCalculated
-                      ? 'bg-indigo-50 border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 cursor-pointer'
-                      : 'bg-gray-50 border-gray-100 hover:bg-gray-100'
-                      }`}
-                    onClick={() => attr.isCalculated && attr.formula ? setSelectedFormula({ name: attr.id, formula: attr.formula }) : undefined}
-                  >
-                    {attr.isCalculated ? (
-                      <Calculator className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                    ) : (
-                      <Tag className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                    )}
+                {combinedAttributes.list.map((attr, idx) => {
+                  const isGray = !attr.isMapped && !attr.isCalculated;
 
-                    <span className={`font-mono text-xs truncate flex-1 ${attr.isCalculated ? 'text-indigo-900' : 'text-gray-700'}`} title={attr.id}>
-                      {attr.id}
-                    </span>
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded border transition-colors ${attr.isCalculated
+                        ? 'bg-indigo-50 border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 cursor-pointer'
+                        : isGray
+                          ? 'bg-slate-50/30 border-slate-100 text-slate-400'
+                          : 'bg-white border-gray-100 hover:bg-gray-50 text-slate-800'
+                        }`}
+                      onClick={() => attr.isCalculated && attr.formula ? setSelectedFormula({ name: attr.id, formula: attr.formula }) : undefined}
+                      title={attr.isCalculated ? 'Calculated' : isGray ? 'Nepoužito na výstupu' : 'Mapováno na výstup'}
+                    >
+                      {attr.isCalculated ? (
+                        <Calculator className={`w-3.5 h-3.5 shrink-0 text-indigo-500`} />
+                      ) : (
+                        <Tag className={`w-3.5 h-3.5 shrink-0 ${isGray ? 'text-slate-300' : 'text-blue-400'}`} />
+                      )}
 
-                    {!attr.isCalculated && (attr.datatype === 'attribute' || attr.datatype === 'measure') && (
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shrink-0 shadow-sm ${attr.datatype === 'measure' ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'bg-blue-100 text-blue-700 border border-blue-200'
-                        }`}>
-                        {attr.datatype === 'measure' ? 'Measure' : 'Attribute'}
+                      <span className={`font-mono text-xs truncate ${attr.isCalculated ? 'text-indigo-900 font-medium' : isGray ? 'text-slate-400' : 'text-slate-800 font-medium'}`}>
+                        {attr.id}
                       </span>
-                    )}
 
-                    {attr.isCalculated && (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shrink-0 bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm">
-                        Calculated
-                      </span>
-                    )}
-                  </div>
-                ))}
+                      {/* Right aligned source columns for mapped columns, only if node has inputs */}
+                      {!isGray && !attr.isCalculated && attr.sources.size > 0 && combinedAttributes.hasInputs && (
+                        <span className="ml-auto font-mono text-[10px] text-slate-400 truncate max-w-[120px]" title={Array.from(attr.sources).join(', ')}>
+                          ← {Array.from(attr.sources).join(', ')}
+                        </span>
+                      )}
+
+                      {/* Datatype indicator (only if not gray, but maybe useful for all?) */}
+                      {attr.datatype === 'measure' && !isGray && (
+                        <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shrink-0 shadow-sm bg-orange-100 text-orange-700 border border-orange-200">
+                          Measure
+                        </span>
+                      )}
+
+                      {attr.isCalculated && (
+                        <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shrink-0 bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm">
+                          Calculated
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -377,6 +490,30 @@ export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, s
             viewAttributes={data.attributes}
             sourceNodesData={sourceNodesData}
             onClose={() => setIsUnionModalOpen(false)}
+          />
+        );
+      })()}
+
+      {/* Projection Modal */}
+      {isProjectionModalOpen && data.inputs && (() => {
+        // Build map of sourceNodeId → attributes for the input nodes
+        const sourceNodesData: Record<string, { id: string }[]> = {};
+        if (allNodes) {
+          data.inputs.forEach((inp: { nodeId: string }) => {
+            const srcNode = allNodes.find(n => n.id === inp.nodeId);
+            if (srcNode?.data?.attributes) {
+              sourceNodesData[inp.nodeId] = srcNode.data.attributes;
+            }
+          });
+        }
+        return (
+          <UnionModal
+            inputs={data.inputs}
+            nodeLabel={data.label}
+            nodeType="ProjectionView"
+            viewAttributes={data.attributes}
+            sourceNodesData={sourceNodesData}
+            onClose={() => setIsProjectionModalOpen(false)}
           />
         );
       })()}
