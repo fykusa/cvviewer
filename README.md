@@ -1,4 +1,4 @@
-# HANA Calculation View Viewer v0.1
+# HANA Calculation View Viewer v0.4
 
 Browser-based viewer and layout editor for SAP HANA `.calculationview` XML files.
 
@@ -14,12 +14,16 @@ Open `http://localhost:3000`, load a `.calculationview` file, explore the graph.
 ## Aktuální Funkcionality
 
 - **Načítání & Zobrazení:** Interaktivní graf pro HANA `Calculation:scenario` XML. Podpora typů Projection, Join, Aggregation, Union, DataSource, Output.
-- **Jednotný datový tok (Bottom-to-Top):** Přehledné toky hran směřující logicky ze spodních úchytů vždy směrem nahoru.
-- **Nabitý Sidebar:** Moderní postranní panel vizuálně oddělující běžné atributy (Tag) od těch počítaných - "Calculated" (Včetně rychlého přístupu ke vzorcům a SQL).
+- **Jednotný datový tok (Bottom-to-Top):** Přehledné toky hran směřující logicky ze spodních úchytů vždy směrem nahoru (od zdroje k výstupu).
+- **Pokročilé detaily uzlů (Modals):** Zcela nové interaktivní nástroje pro pochopení datového toku uvnitř složitých uzlů. Modální okna pro **Join**, **Union** a **Projection** vizualizují vstupní tabulky a jejich mapování na výstupní strukturu pomocí přehledných barevných Bézierových křivek s možností interaktivně klikat na sloupce a prosvětlovat cesty.
+- **Inteligentní Sidebar:** Postranní panel poskytuje vyčerpávající informace o zvoleném uzlu:
+  - Vizuálně odlišuje atributy, které se "dostanou na výstup" (černě) od těch, které "propadly" (šedě).
+  - U běžných sloupců navíc zobrazuje přesný zdroj ve formátu `ZDROJ_TABULKA.ZDROJ_SLOUPEC` zarovnaný vpravo.
+  - Odlišuje ikonami běžná data, Measure (měřítka) a modře zvýrazňuje kalkulovaná pole (Calculated columns) s přímým proklikem na SQL kód/formuli.
 - **Prohledávání grafu:** Vyhledávací lišta s barevným zvýrazněním. Rychle rozezná, jestli se hledaný výraz nachází v názvu uzlu (červený obrys) nebo hluboko v jeho atributech (tyrkysový obrys).
-- **Chytrý Auto-Layout:** Top-to-Bottom algoritmus s ohledem na reálné prostorové velikosti `DOM` elementů (nedochází k překrývání).
-- **Modální zobrazení Komentářů:** Přímý proklik na komentáře uvnitř uzlů bez nutnosti složitě lovit v sidebaru.
-- **Bezpečný XML Export:** Funkce "Save Layout" čte původní dokument a přepisuje pouze `<layout>` tag čistými, nepřevrácenými daty kompatibilními s HANA systémy.
+- **Modální zobrazení Komentářů a Filtrů:** Přímý rychlý proklik ikonkou na případné zakotvené komentáře nebo omezující filtry bez lovení v kódu.
+- **Chytrý Auto-Layout:** Top-to-Bottom (příp. Bottom-to-Top) algoritmus s ohledem na reálné prostorové velikosti `DOM` elementů, zabraňující překrývání.
+- **Bezpečný XML Export:** Funkce "Save Layout" čte původní dokument a elegantně přepisuje pouze `<layout>` tag, čímž uchovává vše ostatní dokonale bez poskvrny.
 
 ## Documentation
 
