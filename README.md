@@ -16,10 +16,11 @@ Open `http://localhost:3000`, load a `.calculationview` file, explore the graph.
 - **Načítání & Zobrazení:** Interaktivní graf pro HANA `Calculation:scenario` XML. Podpora typů Projection, Join, Aggregation, Union, DataSource, Output.
 - **Jednotný datový tok (Bottom-to-Top):** Přehledné toky hran směřující logicky ze spodních úchytů vždy směrem nahoru (od zdroje k výstupu).
 - **Pokročilé detaily uzlů (Modals):** Zcela nové interaktivní nástroje pro pochopení datového toku uvnitř složitých uzlů. Modální okna pro **Join**, **Union** a **Projection** vizualizují vstupní tabulky a jejich mapování na výstupní strukturu pomocí přehledných barevných Bézierových křivek s možností interaktivně klikat na sloupce a prosvětlovat cesty.
-- **Inteligentní Sidebar:** Postranní panel poskytuje vyčerpávající informace o zvoleném uzlu:
+- **Inteligentní pravý Sidebar:** Postranní panel poskytuje vyčerpávající informace o zvoleném uzlu:
   - Vizuálně odlišuje atributy, které se "dostanou na výstup" (černě) od těch, které "propadly" (šedě).
   - U běžných sloupců navíc zobrazuje přesný zdroj ve formátu `ZDROJ_TABULKA.ZDROJ_SLOUPEC` zarovnaný vpravo.
   - Odlišuje ikonami běžná data, Measure (měřítka) a modře zvýrazňuje kalkulovaná pole (Calculated columns) s přímým proklikem na SQL kód/formuli.
+- **Rychlá navigace (Levý Sidebar):** Kompaktní abecední seznam všech aktivních uzlů slouží jako rychlá obsahová navigace po dokumentu. Možnost okamžitě najít a scrollovat grafem kliknutím na prvek v seznamu.
 - **Prohledávání grafu:** Vyhledávací lišta s barevným zvýrazněním. Rychle rozezná, jestli se hledaný výraz nachází v názvu uzlu (červený obrys) nebo hluboko v jeho atributech (tyrkysový obrys).
 - **Modální zobrazení Komentářů a Filtrů:** Přímý rychlý proklik ikonkou na případné zakotvené komentáře nebo omezující filtry bez lovení v kódu.
 - **Chytrý Auto-Layout:** Top-to-Bottom (příp. Bottom-to-Top) algoritmus s ohledem na reálné prostorové velikosti `DOM` elementů, zabraňující překrývání.

@@ -7,16 +7,16 @@ The user loads a file, sees the node graph, can rearrange nodes, apply auto-layo
 and save the updated positions back to a valid `.calculationview` XML that SAP HANA
 Studio / SAP Business Application Studio can open.
 
-**Version:** 0.2.1  
+**Version:** 0.2.1
 **Stack:** React 18 + TypeScript + Vite + React Flow + dagre + fast-xml-parser + TailwindCSS
 
 ---
 
 ## Current State & Recent Features
 
-The application currently supports the following refined workflows and features:
 - **Advanced Node Modals (Join, Union, Projection):** Deep-dive interactive views showing input tables and output structures with color-coded SVG Bezier curve connections. Clicking columns highlights their mappings.
 - **Intelligent Sidebar:** The attributes panel distinguishes mapped columns (black) from unmapped columns (grey), and calculates the actual source column prefixes (e.g., `VBFA.XX_ERZETV`) to clarify data provenance. Calculated columns are highlighted and clickable to show formulas.
+- **Node List Navigation (Left Sidebar):** Fast visual navigation component listing all active nodes alphabetically. Filters nodes quickly via search and automatically selects and centers the graph onto the selected node using React Flow's `fitView` API.
 - **Search System:** Real-time graph search highlights nodes. Node labels match with a red outer stroke, while deep attribute/formula matches use a cyan inner outline.
 - **Automatic Layout & Edge Routing:** Models are automatically organized using `dagre` top-to-bottom upon initial loading. Edges are unified bottom-to-top to match data flow logically.
 - **Robust Export:** The Save layout functionality reliably downloads the updated XML file retaining the original `.calculationview` filename, cleanly replacing only the `<layout>` tag without touching calculation logic.
@@ -46,7 +46,7 @@ npm install
 npm run dev -- --port 3000
 ```
 
-The app will be available at `http://localhost:3000`.  
+The app will be available at `http://localhost:3000`.
 There is no backend — this is a pure client-side SPA.
 
 ---
@@ -119,7 +119,8 @@ The `AbortError` (user cancelled dialog) is silently swallowed.
 | Change how XML is written     | `src/utils/xmlParser.ts`     | `exportToXml` |
 | Add a new node type           | 1. Add `.tsx` in `nodes/`, 2. Register in `FlowViewer.tsx → nodeTypes`, 3. Add mapping in `transformToReactFlow` |
 | Add state to App              | `src/App.tsx`                | top-level `useState` calls |
-| Change Sidebar content | `src/components/Sidebar.tsx` | — |
+| Change Node Navigation | `src/components/LeftSidebar.tsx` | — |
+| Change Right Sidebar content | `src/components/Sidebar.tsx` | — |
 
 ---
 

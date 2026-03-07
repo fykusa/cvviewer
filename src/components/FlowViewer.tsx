@@ -1,4 +1,4 @@
-import React, { useCallback, useImperativeHandle, forwardRef, useEffect } from 'react';
+import React, { useCallback, useImperativeHandle, forwardRef, useEffect, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -10,6 +10,7 @@ import ReactFlow, {
   NodeTypes,
   BackgroundVariant,
   SelectionMode,
+  ReactFlowInstance,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -35,6 +36,7 @@ export interface FlowViewerHandle {
   getCurrentNodes: () => Node[];
   applyLayout: (newNodes: Node[]) => void;
   applyEdges: (newEdges: Edge[]) => void;
+  focusNode: (nodeId: string) => void;
 }
 
 interface FlowViewerProps {
@@ -48,11 +50,25 @@ const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
   ({ initialNodes, initialEdges, onNodeClick, onGroupDeleted }, ref) => {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
 
     useImperativeHandle(ref, () => ({
       getCurrentNodes: () => nodes,
       applyLayout: (newNodes: Node[]) => { setNodes(newNodes); },
       applyEdges: (newEdges: Edge[]) => { setEdges(newEdges); },
+      focusNode: (nodeId: string) => {
+        if (!rfInstance) return;
+        const targetNode = nodes.find(n => n.id === nodeId);
+        if (targetNode) {
+          rfInstance.fitView({ nodes: [{ id: nodeId }], duration: 800, maxZoom: 1 });
+          setNodes((prev) =>
+            prev.map((n) => ({
+              ...n,
+              selected: n.id === nodeId,
+            }))
+          );
+        }
+      }
     }));
 
     // Synchronize data (e.g., searchMatch) from prop changes without resetting node positions.
@@ -105,6 +121,7 @@ const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
           onEdgesChange={onEdgesChange}
           onNodeClick={handleNodeClick}
           onNodesDelete={handleNodesDelete}
+          onInit={setRfInstance}
           nodeTypes={nodeTypes}
           panOnDrag={true}
           selectionOnDrag={false}

@@ -7,6 +7,7 @@ import FlowViewer, { FlowViewerHandle } from './components/FlowViewer';
 import GroupModal from './components/GroupModal';
 import GroupSidebar from './components/GroupSidebar';
 import Sidebar from './components/Sidebar';
+import LeftSidebar from './components/LeftSidebar';
 import { SettingsModal } from './components/SettingsModal';
 import { HelpModal } from './components/HelpModal';
 import { parseCalculationView, transformToReactFlow, exportToXml } from './utils/xmlParser';
@@ -482,7 +483,19 @@ function App() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        <div className={`flex-1 transition-all ${isSidebarOpen ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
+        <LeftSidebar
+          nodes={nodesWithSearch}
+          selectedNodeId={selectedNode?.id}
+          onNodeSelect={(nodeId) => {
+            const node = nodesWithSearch.find(n => n.id === nodeId);
+            if (node) {
+              flowRef.current?.focusNode(nodeId);
+              handleNodeClick(node);
+            }
+          }}
+        />
+
+        <div className={`flex-1 transition-all relative overflow-hidden ${isSidebarOpen ? 'w-[calc(100%-576px)]' : 'w-[calc(100%-256px)]'}`}>
           <FlowViewer
             ref={flowRef}
             initialNodes={nodesWithSearch}
