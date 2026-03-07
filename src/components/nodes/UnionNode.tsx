@@ -1,5 +1,6 @@
 import { Handle, Position, NodeProps } from 'reactflow';
-import { Shuffle, MessageSquare, Filter } from 'lucide-react';
+import { MessageSquare, Filter } from 'lucide-react';
+import { VennIcon } from '../VennIcon';
 import { NodeData } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -24,7 +25,18 @@ export default function UnionNode({ data, selected }: NodeProps<NodeData['data']
             <Handle type="target" position={Position.Bottom} id="input-right" style={{ left: '70%', backgroundColor: colors.icon }} className="!border-white" />
 
             <div className="flex items-center gap-2">
-                <Shuffle style={{ color: colors.icon }} className="w-4 h-4" />
+                <div
+                    title="View Union Diagram"
+                    className="cursor-pointer hover:scale-110 hover:brightness-110 transition-all opacity-80 hover:opacity-100"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        window.dispatchEvent(
+                            new CustomEvent('open-node-union', { detail: { nodeId: data.id } })
+                        );
+                    }}
+                >
+                    <VennIcon vennType="union" style={{ color: colors.icon }} className="w-5 h-5 drop-shadow-sm" />
+                </div>
                 <div className="flex-1">
                     <div style={{ color: colors.text }} className="font-semibold text-sm">{data.label}</div>
                     <div className="text-xs text-gray-500">Union</div>

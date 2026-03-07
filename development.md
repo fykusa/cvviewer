@@ -14,10 +14,13 @@ Studio / SAP Business Application Studio can open.
 
 ## Current State & Recent Features
 
-The application currently supports the following refined workflows:
-- **Automatic Layout:** Models are automatically organized using `dagre` upon initial loading.
-- **Robust Export:** The Save layout functionality reliably downloads the updated XML file retaining the original `.calculationview` filename.
-- **Interactive Nodes:** Node comment icons are now directly clickable, immediately opening a modal with comment details (bypassing the sidebar workflow).
+The application currently supports the following refined workflows and features:
+- **Advanced Node Modals (Join, Union, Projection):** Deep-dive interactive views showing input tables and output structures with color-coded SVG Bezier curve connections. Clicking columns highlights their mappings.
+- **Intelligent Sidebar:** The attributes panel distinguishes mapped columns (black) from unmapped columns (grey), and calculates the actual source column prefixes (e.g., `VBFA.XX_ERZETV`) to clarify data provenance. Calculated columns are highlighted and clickable to show formulas.
+- **Search System:** Real-time graph search highlights nodes. Node labels match with a red outer stroke, while deep attribute/formula matches use a cyan inner outline.
+- **Automatic Layout & Edge Routing:** Models are automatically organized using `dagre` top-to-bottom upon initial loading. Edges are unified bottom-to-top to match data flow logically.
+- **Robust Export:** The Save layout functionality reliably downloads the updated XML file retaining the original `.calculationview` filename, cleanly replacing only the `<layout>` tag without touching calculation logic.
+- **Interactive Modals for Metadata:** Node comment and filter icons are directly clickable, immediately opening a modal with details.
 
 ---
 
@@ -148,4 +151,4 @@ No server-side code.
 ---
 
 ## AI Assistant Rules
-- **Po implementaci nějaké zásadní funkcionality aktualizuj s touto funkcionalitou soubor `README.md` a `IMPLEMENTATION_PLAN.md`.**
+- **Po implementaci nějaké zásadní funkcionality aktualizuj s touto funkcionalitou soubor `README.md` a `implementation_plan.md`.**

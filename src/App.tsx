@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { Download, ArrowLeft, LayoutGrid, RefreshCw, BoxSelect, Search, X, Settings } from 'lucide-react';
+import { Download, ArrowLeft, LayoutGrid, RefreshCw, BoxSelect, Search, X, Settings, HelpCircle } from 'lucide-react';
 import { Node, Edge } from 'reactflow';
 
 import FileUpload from './components/FileUpload';
@@ -8,6 +8,7 @@ import GroupModal from './components/GroupModal';
 import GroupSidebar from './components/GroupSidebar';
 import Sidebar from './components/Sidebar';
 import { SettingsModal } from './components/SettingsModal';
+import { HelpModal } from './components/HelpModal';
 import { parseCalculationView, transformToReactFlow, exportToXml } from './utils/xmlParser';
 import { computeAutoLayout } from './utils/autoLayout';
 import { GroupData, LayoutShape } from './types';
@@ -25,6 +26,10 @@ function App() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [isUnionModalOpen, setIsUnionModalOpen] = useState(false);
+  const [isProjectionModalOpen, setIsProjectionModalOpen] = useState(false);
   const [groupSelectedCount, setGroupSelectedCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -119,33 +124,38 @@ function App() {
   );
 
   useEffect(() => {
-    const handleOpenComment = (event: Event) => {
+    const handleOpenCustom = (type: 'comment' | 'filter' | 'join' | 'union' | 'projection') => (event: Event) => {
       const customEvent = event as CustomEvent<{ nodeId: string }>;
-      const nodeId = customEvent.detail.nodeId;
-      const targetNode = nodes.find(n => n.id === nodeId);
+      const targetNode = nodes.find(n => n.id === customEvent.detail.nodeId);
       if (targetNode) {
         setSelectedNode(targetNode);
         setIsSidebarOpen(true);
-        setIsCommentModalOpen(true);
-        setIsFilterModalOpen(false);
+        setIsCommentModalOpen(type === 'comment');
+        setIsFilterModalOpen(type === 'filter');
+        setIsJoinModalOpen(type === 'join');
+        setIsUnionModalOpen(type === 'union');
+        setIsProjectionModalOpen(type === 'projection');
       }
     };
-    const handleOpenFilter = (event: Event) => {
-      const customEvent = event as CustomEvent<{ nodeId: string }>;
-      const nodeId = customEvent.detail.nodeId;
-      const targetNode = nodes.find(n => n.id === nodeId);
-      if (targetNode) {
-        setSelectedNode(targetNode);
-        setIsSidebarOpen(true);
-        setIsFilterModalOpen(true);
-        setIsCommentModalOpen(false);
-      }
-    };
-    window.addEventListener('open-node-comment', handleOpenComment);
-    window.addEventListener('open-node-filter', handleOpenFilter);
+
+    const hc = handleOpenCustom('comment');
+    const hf = handleOpenCustom('filter');
+    const hj = handleOpenCustom('join');
+    const hu = handleOpenCustom('union');
+    const hp = handleOpenCustom('projection');
+
+    window.addEventListener('open-node-comment', hc);
+    window.addEventListener('open-node-filter', hf);
+    window.addEventListener('open-node-join', hj);
+    window.addEventListener('open-node-union', hu);
+    window.addEventListener('open-node-projection', hp);
+
     return () => {
-      window.removeEventListener('open-node-comment', handleOpenComment);
-      window.removeEventListener('open-node-filter', handleOpenFilter);
+      window.removeEventListener('open-node-comment', hc);
+      window.removeEventListener('open-node-filter', hf);
+      window.removeEventListener('open-node-join', hj);
+      window.removeEventListener('open-node-union', hu);
+      window.removeEventListener('open-node-projection', hp);
     };
   }, [nodes]);
 
@@ -154,6 +164,9 @@ function App() {
     setIsSidebarOpen(true);
     setIsCommentModalOpen(false);
     setIsFilterModalOpen(false);
+    setIsJoinModalOpen(false);
+    setIsUnionModalOpen(false);
+    setIsProjectionModalOpen(false);
   }, []);
 
   const handleReset = useCallback(() => {
@@ -168,6 +181,9 @@ function App() {
     setSearchQuery('');
     setIsCommentModalOpen(false);
     setIsFilterModalOpen(false);
+    setIsJoinModalOpen(false);
+    setIsUnionModalOpen(false);
+    setIsProjectionModalOpen(false);
   }, []);
 
   const handleAutoLayout = useCallback(() => {
@@ -176,8 +192,8 @@ function App() {
     const selectedCount = currentNodes.filter(n => n.selected).length;
 
     const msg = selectedCount > 0
-      ? `Aplikovat auto-layout POUZE na ${selectedCount} vybraných uzlů?`
-      : 'Přepsat aktuální rozmístění všech uzlů pomocí Auto-Layout?';
+      ? `Apply auto-layout ONLY to the ${selectedCount} selected nodes?`
+      : 'Overwrite the current layout of all nodes using Auto-Layout?';
 
     if (!window.confirm(msg)) return;
 
@@ -190,7 +206,7 @@ function App() {
     const selected = flowRef.current.getCurrentNodes()
       .filter(n => n.selected && n.type !== 'groupNode');
     if (selected.length < 1) {
-      alert('Vyberte alespoň jeden uzel pro seskupení.');
+      alert('Select at least one node to group.');
       return;
     }
     setGroupSelectedCount(selected.length);
@@ -387,12 +403,12 @@ function App() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* Hledací pole */}
+          {/* Search Field */}
           <div className="relative flex items-center bg-gray-100 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-indigo-500 transition-all border border-gray-200">
             <Search className="w-4 h-4 text-gray-400 mr-2" />
             <input
               type="text"
-              placeholder="Hledat uzly a sloupce..."
+              placeholder="Search nodes and columns..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent border-none outline-none text-sm text-gray-700 w-48 placeholder-gray-400"
@@ -401,7 +417,7 @@ function App() {
               <button
                 onClick={() => setSearchQuery('')}
                 className="ml-1 p-0.5 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
-                title="Vymazat hledání"
+                title="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -411,10 +427,10 @@ function App() {
           <button
             onClick={() => mergeFileInputRef.current?.click()}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors"
-            title="Zachová polohy stávajících uzlů"
+            title="Update from a new file while keeping existing node positions"
           >
             <RefreshCw className="w-4 h-4" />
-            <span className="text-sm font-medium">Aktualizovat z nového souboru</span>
+            <span className="text-sm font-medium">Update from file</span>
           </button>
           <input
             ref={mergeFileInputRef}
@@ -426,10 +442,10 @@ function App() {
           <button
             onClick={handleCreateGroup}
             className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-500 transition-colors"
-            title="Vyberte uzly a klikněte pro seskupení"
+            title="Select nodes and click to group them"
           >
             <BoxSelect className="w-4 h-4" />
-            <span className="text-sm font-medium">Seskupit uzly</span>
+            <span className="text-sm font-medium">Group Nodes</span>
           </button>
           <button
             onClick={handleAutoLayout}
@@ -450,9 +466,16 @@ function App() {
           <button
             onClick={() => setIsSettingsOpen(true)}
             className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Nastavení vzhledu"
+            title="View settings"
           >
             <Settings className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setIsHelpOpen(true)}
+            className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Help & documentation"
+          >
+            <HelpCircle className="w-5 h-5" />
           </button>
         </div>
       </header>
@@ -498,6 +521,12 @@ function App() {
               setIsCommentModalOpen={setIsCommentModalOpen}
               isFilterModalOpen={isFilterModalOpen}
               setIsFilterModalOpen={setIsFilterModalOpen}
+              isJoinModalOpen={isJoinModalOpen}
+              setIsJoinModalOpen={setIsJoinModalOpen}
+              isUnionModalOpen={isUnionModalOpen}
+              setIsUnionModalOpen={setIsUnionModalOpen}
+              isProjectionModalOpen={isProjectionModalOpen}
+              setIsProjectionModalOpen={setIsProjectionModalOpen}
             />
           </div>
         )}
@@ -513,6 +542,10 @@ function App() {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
+      />
+      <HelpModal
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
       />
     </div>
   );

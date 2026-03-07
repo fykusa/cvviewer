@@ -22,7 +22,18 @@ export default function ProjectionNode({ data, selected }: NodeProps<NodeData['d
       <Handle type="target" position={Position.Bottom} style={{ backgroundColor: colors.icon }} className="!border-white" />
 
       <div className="flex items-center gap-2">
-        <Copy style={{ color: colors.icon }} className="w-4 h-4" />
+        <div
+          title="View Projection Diagram"
+          className="cursor-pointer hover:scale-110 hover:brightness-110 transition-all opacity-80 hover:opacity-100"
+          onClick={(e) => {
+            e.stopPropagation();
+            window.dispatchEvent(
+              new CustomEvent('open-node-projection', { detail: { nodeId: data.id } })
+            );
+          }}
+        >
+          <Copy style={{ color: colors.icon }} className="w-5 h-5 drop-shadow-sm" />
+        </div>
         <div className="flex-1">
           <div style={{ color: colors.text }} className="font-semibold text-sm">{data.label}</div>
           <div className="text-xs text-gray-500">Projection</div>

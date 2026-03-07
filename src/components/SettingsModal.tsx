@@ -20,13 +20,13 @@ interface SettingsModalProps {
 }
 
 const CATEGORIES: { id: keyof AppTheme, label: string, properties: { key: string, label: string }[] }[] = [
-    { id: 'projection', label: 'Projection', properties: [{ key: 'border', label: 'Rámeček' }, { key: 'bg', label: 'Pozadí' }, { key: 'text', label: 'Název / Text' }, { key: 'icon', label: 'Ikonka' }] },
-    { id: 'join', label: 'Join', properties: [{ key: 'border', label: 'Rámeček' }, { key: 'bg', label: 'Pozadí' }, { key: 'text', label: 'Název / Text' }, { key: 'icon', label: 'Ikonka' }] },
-    { id: 'union', label: 'Union', properties: [{ key: 'border', label: 'Rámeček' }, { key: 'bg', label: 'Pozadí' }, { key: 'text', label: 'Název / Text' }, { key: 'icon', label: 'Ikonka' }] },
-    { id: 'aggregation', label: 'Aggregation', properties: [{ key: 'border', label: 'Rámeček' }, { key: 'bg', label: 'Pozadí' }, { key: 'text', label: 'Název / Text' }, { key: 'icon', label: 'Ikonka' }] },
-    { id: 'dataSource', label: 'Data Source', properties: [{ key: 'border', label: 'Rámeček' }, { key: 'bg', label: 'Pozadí' }, { key: 'text', label: 'Název / Text' }, { key: 'icon', label: 'Ikonka' }] },
-    { id: 'output', label: 'Output', properties: [{ key: 'border', label: 'Rámeček' }, { key: 'bg', label: 'Pozadí' }, { key: 'text', label: 'Název / Text' }, { key: 'icon', label: 'Ikonka' }] },
-    { id: 'group', label: 'Skupina (Group)', properties: [{ key: 'border', label: 'Čárkovaný okraj' }, { key: 'bg', label: 'Barva pozadí' }, { key: 'title', label: 'Barva nadpisu' }, { key: 'comment', label: 'Barva popisu' }] }
+    { id: 'projection', label: 'Projection', properties: [{ key: 'border', label: 'Border' }, { key: 'bg', label: 'Background' }, { key: 'text', label: 'Title / Text' }, { key: 'icon', label: 'Icon' }] },
+    { id: 'join', label: 'Join', properties: [{ key: 'border', label: 'Border' }, { key: 'bg', label: 'Background' }, { key: 'text', label: 'Title / Text' }, { key: 'icon', label: 'Icon' }] },
+    { id: 'union', label: 'Union', properties: [{ key: 'border', label: 'Border' }, { key: 'bg', label: 'Background' }, { key: 'text', label: 'Title / Text' }, { key: 'icon', label: 'Icon' }] },
+    { id: 'aggregation', label: 'Aggregation', properties: [{ key: 'border', label: 'Border' }, { key: 'bg', label: 'Background' }, { key: 'text', label: 'Title / Text' }, { key: 'icon', label: 'Icon' }] },
+    { id: 'dataSource', label: 'Data Source', properties: [{ key: 'border', label: 'Border' }, { key: 'bg', label: 'Background' }, { key: 'text', label: 'Title / Text' }, { key: 'icon', label: 'Icon' }] },
+    { id: 'output', label: 'Output', properties: [{ key: 'border', label: 'Border' }, { key: 'bg', label: 'Background' }, { key: 'text', label: 'Title / Text' }, { key: 'icon', label: 'Icon' }] },
+    { id: 'group', label: 'Group', properties: [{ key: 'border', label: 'Dashed border' }, { key: 'bg', label: 'Background color' }, { key: 'title', label: 'Title color' }, { key: 'comment', label: 'Description color' }] }
 ];
 
 const nodeTypesArray = {
@@ -92,7 +92,7 @@ const ColorPickerWithAlpha = ({ label, value = '#000000', onChange }: { label: s
                     <div className="flex-1 font-mono text-xs text-gray-500 truncate uppercase mt-0.5">{hex}</div>
                 </div>
                 <div className="flex items-center gap-3 pt-1 border-t border-gray-200/60">
-                    <span className="text-xs text-gray-500 w-[70px]">Průhlednost:</span>
+                    <span className="text-xs text-gray-500 w-[70px]">Opacity:</span>
                     <input
                         type="range"
                         min="0" max="1" step="0.05"
@@ -137,7 +137,7 @@ const SettingsModalInner: React.FC<SettingsModalProps> = ({ isOpen, onClose }) =
     };
 
     const handleReset = () => {
-        if (confirm('Opravdu chcete vyresetovat všechny barvy na výchozí hodnoty?')) {
+        if (confirm('Do you really want to reset all colors to default values?')) {
             resetTheme();
             setLocalTheme(theme); // Sync back
         }
@@ -148,8 +148,8 @@ const SettingsModalInner: React.FC<SettingsModalProps> = ({ isOpen, onClose }) =
     const getPreviewNodeData = () => {
         const baseData = {
             id: 'preview-node',
-            label: `Příklad ${selectedCatParams?.label}`,
-            comment: 'Tohle je ukázkový komentář pro zobrazení reálného náhledu prvku vizualizace...',
+            label: `Example ${selectedCatParams?.label}`,
+            comment: 'This is a sample comment to show a real preview of the visualization element...',
             filter: selectedCategory === 'group' ? undefined : 'MANDT = 100',
             joinType: 'inner',
             attributes: [{ isCalculated: false }, { isCalculated: true }],
@@ -161,8 +161,8 @@ const SettingsModalInner: React.FC<SettingsModalProps> = ({ isOpen, onClose }) =
         if (selectedCategory === 'group') {
             return {
                 id: 'preview-group',
-                label: 'Ukázková Skupina',
-                comment: 'Informace o skupině...\nVíce řádků textu.',
+                label: 'Sample Group',
+                comment: 'Group information...\nMultiple lines of text.',
                 // Pro preview nepotřebujeme další vlastnosti
             };
         }
@@ -196,7 +196,7 @@ const SettingsModalInner: React.FC<SettingsModalProps> = ({ isOpen, onClose }) =
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col h-[85vh] max-h-[850px]">
                 {/* Header */}
                 <div className="bg-slate-900 px-6 py-4 flex items-center justify-between text-white shrink-0">
-                    <h2 className="text-xl font-bold tracking-wide">Nastavení Vzhledu</h2>
+                    <h2 className="text-xl font-bold tracking-wide">Appearance Settings</h2>
                     <button onClick={onClose} className="p-1 hover:bg-slate-800 rounded-full transition-colors text-slate-300 hover:text-white">
                         <X className="w-6 h-6" />
                     </button>
@@ -207,7 +207,7 @@ const SettingsModalInner: React.FC<SettingsModalProps> = ({ isOpen, onClose }) =
                     {/* Left Panel: Settings Controls */}
                     <div className="w-[360px] bg-white border-r border-gray-200 flex flex-col pt-6 pb-2 px-6 overflow-y-auto">
                         <div className="mb-6">
-                            <label className="block text-sm font-semibold text-gray-800 mb-2 uppercase tracking-wide">Vyberte prvek</label>
+                            <label className="block text-sm font-semibold text-gray-800 mb-2 uppercase tracking-wide">Select Element</label>
                             <select
                                 value={selectedCategory}
                                 onChange={(e) => setSelectedCategory(e.target.value as keyof AppTheme)}
@@ -233,7 +233,7 @@ const SettingsModalInner: React.FC<SettingsModalProps> = ({ isOpen, onClose }) =
 
                     {/* Right Panel: Live Preview */}
                     <div className="flex-1 bg-slate-50 flex flex-col p-6 relative">
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-widest absolute top-6 left-6 z-10">Živý Náhled (Zvolený typ)</h3>
+                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-widest absolute top-6 left-6 z-10">Live Preview (Selected type)</h3>
 
                         <div className="flex-1 rounded-2xl border border-slate-300/60 bg-white shadow-inner overflow-hidden shadow-sm mt-8">
                             {/* Inject localTheme manually to the preview context */}
@@ -267,20 +267,20 @@ const SettingsModalInner: React.FC<SettingsModalProps> = ({ isOpen, onClose }) =
                         className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors text-sm font-semibold shadow-sm"
                     >
                         <RotateCcw className="w-4 h-4" />
-                        Resetovat vše na výchozí
+                        Reset all to default
                     </button>
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}
                             className="px-5 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-semibold shadow-sm"
                         >
-                            Zrušit
+                            Cancel
                         </button>
                         <button
                             onClick={handleSave}
                             className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors text-sm font-bold shadow-md hover:shadow-lg shadow-indigo-200"
                         >
-                            Uložit Nastavení
+                            Save Settings
                         </button>
                     </div>
                 </div>

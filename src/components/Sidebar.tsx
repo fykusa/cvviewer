@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
-import { X, Database, Copy, Layers, GitMerge, ArrowRightCircle, Settings, Shuffle, MessageSquare, Tag, Calculator, Filter } from 'lucide-react';
+import { X, Database, Copy, Layers, ArrowRightCircle, Settings, MessageSquare, Tag, Calculator, Filter } from 'lucide-react';
 import { Node } from 'reactflow';
 import { NodeData } from '../types';
 import FilterViewer from './FilterViewer';
 import JoinModal from './JoinModal';
 import UnionModal from './UnionModal';
+import { VennIcon } from './VennIcon';
 
 interface SidebarProps {
   node: Node<NodeData['data']> | null;
@@ -14,13 +15,23 @@ interface SidebarProps {
   setIsCommentModalOpen: (open: boolean) => void;
   isFilterModalOpen: boolean;
   setIsFilterModalOpen: (open: boolean) => void;
+  isJoinModalOpen: boolean;
+  setIsJoinModalOpen: (open: boolean) => void;
+  isUnionModalOpen: boolean;
+  setIsUnionModalOpen: (open: boolean) => void;
+  isProjectionModalOpen: boolean;
+  setIsProjectionModalOpen: (open: boolean) => void;
 }
 
-export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, setIsCommentModalOpen, isFilterModalOpen, setIsFilterModalOpen }: SidebarProps) {
+export default function Sidebar({
+  node, allNodes, onClose,
+  isCommentModalOpen, setIsCommentModalOpen,
+  isFilterModalOpen, setIsFilterModalOpen,
+  isJoinModalOpen, setIsJoinModalOpen,
+  isUnionModalOpen, setIsUnionModalOpen,
+  isProjectionModalOpen, setIsProjectionModalOpen
+}: SidebarProps) {
   const [selectedFormula, setSelectedFormula] = useState<{ name: string, formula: string } | null>(null);
-  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
-  const [isUnionModalOpen, setIsUnionModalOpen] = useState(false);
-  const [isProjectionModalOpen, setIsProjectionModalOpen] = useState(false);
 
   if (!node) {
     return (
@@ -129,9 +140,9 @@ export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, s
     switch (data.type) {
       case 'DATA_BASE_TABLE': return <Database className="w-5 h-5 text-gray-600" />;
       case 'ProjectionView': return <Copy className="w-5 h-5 text-blue-600" />;
-      case 'JoinView': return <GitMerge className="w-5 h-5 text-purple-600" />;
+      case 'JoinView': return <VennIcon vennType={data.joinType === 'leftOuter' ? 'left' : data.joinType === 'rightOuter' ? 'right' : data.joinType === 'fullOuter' ? 'full' : 'inner'} className="w-5 h-5 text-purple-600" />;
       case 'AggregationView': return <Layers className="w-5 h-5 text-green-600" />;
-      case 'UnionView': return <Shuffle className="w-5 h-5 text-indigo-600" />;
+      case 'UnionView': return <VennIcon vennType="union" className="w-5 h-5 text-indigo-600" />;
       default: return <ArrowRightCircle className="w-5 h-5 text-emerald-600" />;
     }
   };
@@ -248,7 +259,7 @@ export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, s
         {data.joinType && (
           <div className="bg-purple-50 rounded-lg px-3 py-2 flex items-center justify-between">
             <span className="text-xs text-purple-600 font-medium flex items-center gap-1.5">
-              <GitMerge className="w-3.5 h-3.5" />
+              <VennIcon vennType={data.joinType === 'leftOuter' ? 'left' : data.joinType === 'rightOuter' ? 'right' : data.joinType === 'fullOuter' ? 'full' : 'inner'} className="w-3.5 h-3.5" />
               {data.joinType}
             </span>
             {data.inputs && data.inputs.length >= 2 && (
@@ -284,7 +295,7 @@ export default function Sidebar({ node, allNodes, onClose, isCommentModalOpen, s
                           : 'bg-white border-gray-100 hover:bg-gray-50 text-slate-800'
                         }`}
                       onClick={() => attr.isCalculated && attr.formula ? setSelectedFormula({ name: attr.id, formula: attr.formula }) : undefined}
-                      title={attr.isCalculated ? 'Calculated' : isGray ? 'Nepoužito na výstupu' : 'Mapováno na výstup'}
+                      title={attr.isCalculated ? 'Calculated' : isGray ? 'Dropped (Not mapped to output)' : 'Mapped to output'}
                     >
                       {attr.isCalculated ? (
                         <Calculator className={`w-3.5 h-3.5 shrink-0 text-indigo-500`} />
