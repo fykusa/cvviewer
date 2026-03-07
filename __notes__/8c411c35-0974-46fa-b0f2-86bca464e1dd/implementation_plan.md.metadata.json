@@ -1,5 +1,0 @@
-{
-  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
-  "summary":  "Plan for adding LP090ITS (initial timestamp for LP status 90) to the SERVICEGRADE calculation view. Covers all 4 nodes that need to be modified: LP_1st_date (add min calc column), LP_1st_date_state (aggregate with min), LP_current_with_TSs (forward), LP_agg_to_VL (forward to output).",
-  "updatedAt":  "2026-03-05T09:33:07.084769Z"
-}

@@ -23,3 +23,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Vyloučení souboru s tajnými proměnnými prostředí (FTP heslo atd.)
+.env
+
+# Vyloučení mych poznamek
+.notes/*
+

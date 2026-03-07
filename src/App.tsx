@@ -23,6 +23,7 @@ function App() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
@@ -484,6 +485,8 @@ function App() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         <LeftSidebar
+          isOpen={isLeftSidebarOpen}
+          onToggle={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
           nodes={nodesWithSearch}
           selectedNodeId={selectedNode?.id}
           onNodeSelect={(nodeId) => {
@@ -495,7 +498,7 @@ function App() {
           }}
         />
 
-        <div className={`flex-1 transition-all relative overflow-hidden ${isSidebarOpen ? 'w-[calc(100%-576px)]' : 'w-[calc(100%-256px)]'}`}>
+        <div className="flex-1 transition-all duration-300 relative overflow-hidden" style={{ width: `calc(100% - ${(isSidebarOpen ? 320 : 0) + (isLeftSidebarOpen ? 256 : 48)}px)` }}>
           <FlowViewer
             ref={flowRef}
             initialNodes={nodesWithSearch}
