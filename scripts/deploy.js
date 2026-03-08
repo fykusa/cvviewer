@@ -27,7 +27,7 @@ async function deploy() {
         console.log("✅ Úspěšně připojeno k FTP serveru.");
 
         const localDir = path.join(__dirname, '../dist');
-        const remoteDir = "/www/cvviewer2"; // Změňte podle potřeby, např. "/www" nebo "/public_html"
+        const remoteDir = "/www/cvviewer"; // Změňte podle potřeby, např. "/www" nebo "/public_html"
 
         console.log(`📂 Nahrávám složku 'dist' do '${remoteDir}'...`);
 

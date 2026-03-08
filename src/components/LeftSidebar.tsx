@@ -85,7 +85,7 @@ export default function LeftSidebar({ nodes, selectedNodeId, onNodeSelect, isOpe
                 </>
             ) : (
                 <div className="flex-1 flex flex-col items-center py-3">
-                    <button onClick={onToggle} className="p-1.5 mb-6 text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded transition-colors shadow-sm bg-white border border-gray-200" title="Expand side panel">
+                    <button onClick={onToggle} className="p-1.5 mb-6 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded transition-colors shadow-sm bg-indigo-50 border border-indigo-300" title="Expand side panel">
                         <ChevronRight className="w-4 h-4" />
                     </button>
                     <div className="flex-col flex items-center gap-3 text-gray-400">

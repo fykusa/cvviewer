@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import fs from "fs";
+import os from "os";
 
 function buildCounterPlugin() {
   return {
@@ -43,6 +44,7 @@ function buildCounterPlugin() {
 }
 
 export default defineConfig({
+  cacheDir: path.join(os.tmpdir(), "cvviewer-vite-cache"),
   base: './',
   plugins: [buildCounterPlugin(), react()],
   resolve: {
@@ -64,5 +66,8 @@ export default defineConfig({
         }
       }
     }
+  },
+  optimizeDeps: {
+    // žádné force: true
   }
 });

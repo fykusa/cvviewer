@@ -30,3 +30,6 @@ dist-ssr
 # Vyloučení mych poznamek
 .notes/*
 
+# Vite interní dočasné soubory (transpilace config souboru)
+vite.config.*.timestamp-*.mjs
+

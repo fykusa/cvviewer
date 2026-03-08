@@ -4,7 +4,10 @@
       "Bash(python3:*)",
       "Bash(node:*)",
       "Bash(npx tsc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(ls \"d:/Dropbox/AI/cvviewer/\"vite.config*)",
+      "Bash(ls d:/Dropbox/AI/cvviewer/vite.config*)",
+      "Bash(ls d:/Dropbox/AI/cvviewer/*.mjs)"
     ]
   }
 }
