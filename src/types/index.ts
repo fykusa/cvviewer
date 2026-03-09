@@ -102,6 +102,8 @@ export type NodeData = Node & {
     filter?: string;
     onCommentClick?: () => void;
     searchMatch?: 'node' | 'attribute' | null;
+    columnFlowHighlight?: 'up' | 'down' | null;
+    columnFlowLabel?: string;
   };
 };
 

@@ -21,6 +21,8 @@ interface SidebarProps {
   setIsUnionModalOpen: (open: boolean) => void;
   isProjectionModalOpen: boolean;
   setIsProjectionModalOpen: (open: boolean) => void;
+  onColumnClick?: (nodeId: string, columnId: string) => void;
+  activeColumnFlow?: { nodeId: string; columnId: string } | null;
 }
 
 export default function Sidebar({
@@ -29,7 +31,8 @@ export default function Sidebar({
   isFilterModalOpen, setIsFilterModalOpen,
   isJoinModalOpen, setIsJoinModalOpen,
   isUnionModalOpen, setIsUnionModalOpen,
-  isProjectionModalOpen, setIsProjectionModalOpen
+  isProjectionModalOpen, setIsProjectionModalOpen,
+  onColumnClick, activeColumnFlow
 }: SidebarProps) {
   const [selectedFormula, setSelectedFormula] = useState<{ name: string, formula: string } | null>(null);
 
@@ -284,18 +287,24 @@ export default function Sidebar({
               <div className="space-y-1">
                 {combinedAttributes.list.map((attr, idx) => {
                   const isGray = !attr.isMapped && !attr.isCalculated;
+                  const isActiveFlow = !!(activeColumnFlow && activeColumnFlow.nodeId === node!.id && activeColumnFlow.columnId === attr.id);
 
                   return (
                     <div
                       key={idx}
-                      className={`flex items-center gap-2 px-2 py-1.5 rounded border transition-colors ${attr.isCalculated
-                        ? 'bg-indigo-50 border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 cursor-pointer'
-                        : isGray
-                          ? 'bg-slate-50/30 border-slate-100 text-slate-400'
-                          : 'bg-white border-gray-100 hover:bg-gray-50 text-slate-800'
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded border transition-colors ${isActiveFlow
+                        ? 'bg-purple-50 border-purple-400 ring-1 ring-purple-400 cursor-pointer'
+                        : attr.isCalculated
+                          ? 'bg-indigo-50 border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 cursor-pointer'
+                          : isGray
+                            ? 'bg-slate-50/30 border-slate-100 text-slate-400'
+                            : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-purple-200 cursor-pointer text-slate-800'
                         }`}
-                      onClick={() => attr.isCalculated && attr.formula ? setSelectedFormula({ name: attr.id, formula: attr.formula }) : undefined}
-                      title={attr.isCalculated ? 'Calculated' : isGray ? 'Dropped (Not mapped to output)' : 'Mapped to output'}
+                      onClick={() => {
+                        if (attr.isCalculated && attr.formula) setSelectedFormula({ name: attr.id, formula: attr.formula });
+                        if (!isGray) onColumnClick?.(node!.id, attr.id);
+                      }}
+                      title={isActiveFlow ? 'Click to hide flow' : attr.isCalculated ? 'Calculated — click to see formula / trace flow' : isGray ? 'Dropped (Not mapped to output)' : 'Click to trace column flow'}
                     >
                       {attr.isCalculated ? (
                         <Calculator className={`w-3.5 h-3.5 shrink-0 text-indigo-500`} />

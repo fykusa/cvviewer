@@ -12,6 +12,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { HelpModal } from './components/HelpModal';
 import { parseCalculationView, transformToReactFlow, exportToXml } from './utils/xmlParser';
 import { computeAutoLayout } from './utils/autoLayout';
+import { traceColumnFlow } from './utils/columnFlow';
 import { GroupData, LayoutShape } from './types';
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
   const [isProjectionModalOpen, setIsProjectionModalOpen] = useState(false);
   const [groupSelectedCount, setGroupSelectedCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeColumnFlow, setActiveColumnFlow] = useState<{ nodeId: string; columnId: string } | null>(null);
 
   const flowRef = useRef<FlowViewerHandle>(null);
   const mergeFileInputRef = useRef<HTMLInputElement>(null);
@@ -169,6 +171,12 @@ function App() {
     setIsJoinModalOpen(false);
     setIsUnionModalOpen(false);
     setIsProjectionModalOpen(false);
+  }, []);
+
+  const handleColumnClick = useCallback((nodeId: string, columnId: string) => {
+    setActiveColumnFlow(prev =>
+      prev?.nodeId === nodeId && prev?.columnId === columnId ? null : { nodeId, columnId }
+    );
   }, []);
 
   const handleReset = useCallback(() => {
@@ -338,6 +346,11 @@ function App() {
     setXmlContent(updatedXml);
   }, [xmlContent, fileName, layoutShapes]);
 
+  // Reset flow při změně vybraného uzlu
+  useEffect(() => {
+    setActiveColumnFlow(null);
+  }, [selectedNode?.id]);
+
   // Aktualizuje vlastnost searchMatch na uzlech na základě searchQuery
   const nodesWithSearch = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -381,6 +394,35 @@ function App() {
       return node;
     });
   }, [nodes, searchQuery]);
+
+  const nodesWithColumnFlow = useMemo(() => {
+    if (!activeColumnFlow) {
+      return nodesWithSearch.map(node => {
+        if (node.data?.columnFlowHighlight != null || node.data?.columnFlowLabel != null) {
+          const { columnFlowHighlight, columnFlowLabel, ...restData } = node.data;
+          return { ...node, data: restData };
+        }
+        return node;
+      });
+    }
+    const { upflow, downflow } = traceColumnFlow(
+      activeColumnFlow.nodeId,
+      activeColumnFlow.columnId,
+      nodesWithSearch
+    );
+    return nodesWithSearch.map(node => {
+      if (upflow.has(node.id)) {
+        const m = upflow.get(node.id)!;
+        return { ...node, data: { ...node.data, columnFlowHighlight: 'up' as const, columnFlowLabel: `[${m.inputName} → ${m.outputName}]` } };
+      }
+      if (downflow.has(node.id)) {
+        const m = downflow.get(node.id)!;
+        return { ...node, data: { ...node.data, columnFlowHighlight: 'down' as const, columnFlowLabel: `[${m.inputName} → ${m.outputName}]` } };
+      }
+      const { columnFlowHighlight, columnFlowLabel, ...restData } = node.data ?? {};
+      return { ...node, data: restData };
+    });
+  }, [nodesWithSearch, activeColumnFlow]);
 
   if (!xmlContent) {
     return <FileUpload onFileLoad={handleFileLoad} error={error} />;
@@ -488,10 +530,10 @@ function App() {
         <LeftSidebar
           isOpen={isLeftSidebarOpen}
           onToggle={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
-          nodes={nodesWithSearch}
+          nodes={nodesWithColumnFlow}
           selectedNodeId={selectedNode?.id}
           onNodeSelect={(nodeId) => {
-            const node = nodesWithSearch.find(n => n.id === nodeId);
+            const node = nodesWithColumnFlow.find(n => n.id === nodeId);
             if (node) {
               flowRef.current?.focusNode(nodeId);
               handleNodeClick(node);
@@ -502,7 +544,7 @@ function App() {
         <div className="flex-1 transition-all duration-300 relative overflow-hidden" style={{ width: `calc(100% - ${(isSidebarOpen ? 320 : 0) + (isLeftSidebarOpen ? 256 : 48)}px)` }}>
           <FlowViewer
             ref={flowRef}
-            initialNodes={nodesWithSearch}
+            initialNodes={nodesWithColumnFlow}
             initialEdges={edges}
             onNodeClick={handleNodeClick}
             onGroupDeleted={(gId) => {
@@ -532,8 +574,10 @@ function App() {
           <div className="w-80 flex-shrink-0">
             <Sidebar
               node={selectedNode}
-              allNodes={nodesWithSearch}
+              allNodes={nodesWithColumnFlow}
               onClose={() => setIsSidebarOpen(false)}
+              onColumnClick={handleColumnClick}
+              activeColumnFlow={activeColumnFlow}
               isCommentModalOpen={isCommentModalOpen}
               setIsCommentModalOpen={setIsCommentModalOpen}
               isFilterModalOpen={isFilterModalOpen}
