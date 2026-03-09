@@ -42,6 +42,12 @@ export default function FileUpload({ onFileLoad, error }: FileUploadProps) {
     }
   };
 
+  const getContactHref = () => {
+    const u = 'fykusa';
+    const d = 'gmail' + '.com';
+    return `mailto:${u}@${d}`;
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
       <div className="max-w-md w-full">
@@ -111,6 +117,12 @@ export default function FileUpload({ onFileLoad, error }: FileUploadProps) {
           </div>
         </div>
       </div>
+      <p className="mt-6 text-xs text-gray-400">
+        created by{' '}
+        <a href={getContactHref()} className="hover:text-gray-600 transition-colors">
+          FykaSoft
+        </a>
+      </p>
     </div>
   );
 }

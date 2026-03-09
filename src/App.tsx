@@ -400,7 +400,7 @@ function App() {
           </button>
           <div className="h-6 w-px bg-gray-300" />
           <div>
-            <h1 className="text-lg font-semibold text-gray-900">HANA CV Viewer <span className="text-sm font-normal text-gray-400">v{__APP_VERSION__}</span></h1>
+            <h1 className="text-lg font-semibold text-gray-900">HANA CV Viewe<span onClick={handleSave} className="cursor-default select-none">r</span> <span className="text-sm font-normal text-gray-400">v{__APP_VERSION__}</span></h1>
             {fileName && <p className="text-xs text-gray-500">{fileName}</p>}
           </div>
         </div>
@@ -457,8 +457,9 @@ function App() {
             <span className="text-sm font-medium">Auto-Layout</span>
           </button>
           <button
-            onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors"
+            disabled
+            title="Coming soon"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-400 rounded-lg cursor-not-allowed"
           >
             <Download className="w-4 h-4" />
             <span className="text-sm font-medium">Save Layout</span>
