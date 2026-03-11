@@ -8,6 +8,7 @@ Vývojový a implementační deník funkcionalit. Zde sledujeme hotové bloky i 
 - [x] Unifikace úchytů hran (handles) - u všech uzlů jsou vstupy směřovány plynule zespodu a výstup ústí zeshora
 - [x] Zobrazení informativních statistik přímo na "kartičkách" uzlů na plátně (počty vstupů, počty atributů a indikátor kalkulovaných sloupců)
 - [x] Extrémní odzoomování plátna - upraven limit `minZoom` na `0.05`
+- [x] Přidání levého sidebaru — kompletní seznam všech existujících aktivních uzlů, vypsaných v kondenzované formě bez zbytečného místa nad a pod řádkem, seřazených abecedně. Seznam funguje jako navigace: po kliknutí na uzel se tento uzel zvýrazní na plátně (Canvas) a jeho detail se rovnou zobrazí v pravém sidebaru.
 
 ### Layout a souřadnice
 - [x] Načítání původních pozic (souřadnic) uzlů přímo z `layout` bloku v XML, kompatibilita souřadnicových systémů zachována 1:1 (bez převracení Y osy)
@@ -15,12 +16,14 @@ Vývojový a implementační deník funkcionalit. Zde sledujeme hotové bloky i 
 - [x] Inteligentní Auto-Layout pomocí Dagre: respektování dynamických rozměrů elementů (okraje) přes browser bounding box místo pevných krabiček 220x80px
 - [x] Ochranný potvrzovací (confirm) dialog před provedením Auto-Layoutu (prevence ztráty těžce naformátovaného stromu)
 - [x] Funkce **Save Layout** - stažení validního XML souboru, do kterého jsou zapsány vaše aktuální nově posunuté souřadnice uzlů pomocí manipulace původního zdrojového textu
+- [x] Auto-Layout zachovává skupiny (groupNode) — fix pomocí compound graph (dagre) tak, aby dagre drželo členy skupiny u sebe a nepouštělo tam cizí nody.
 
 ### Analýza uzlů a postranní panel (Sidebar / Modal)
 - [x] Odlišení běžných a vypočítaných atributů u uzlů logickým zpracováním XML
 - [x] Vizuální přepracování postranního panelu: atributy reprezentovány kompaktními štítky (badges). Modrá (Tag) pro klasické sloupce a measures; fialová (Calculator) pro "Calculated column"
 - [x] V Sidebaru zobrazení SQL vizuální formule (kalkulačky) s proklikem skrze modal / nebo zobrazení na hover
 - [x] Komentáře uvnitř uzlů reprezentovány proklikávací ikonkou zobrazenou přímo na plátně - otevírající neblokující módál rovnou
+- [x] **Column Flow Visualization** — kliknutím na konkrétní sloupec v pravém sidebaru se na canvasu zvýrazní celá datová cesta tohoto sloupce: upstream uzly (fialová #f73be7), downstream uzly (zelená #4ae80b), každý s popiskem `[vstup → výstup]` vykresleným v oranžovém štítku u horní hrany uzlu. Opakovaný klik flow skryje. Přechod na jiný uzel flow automaticky resetuje. Nový soubor `src/utils/columnFlow.ts` implementuje rekurzivní algoritmus traceUp/traceDown přes `node.data.inputs[].mapping`.
 
 ### Search & Interaktivita
 - [x] Vyhledávací panel v hlavičce (Search) a real-time filtrace uzlů
@@ -28,10 +31,5 @@ Vývojový a implementační deník funkcionalit. Zde sledujeme hotové bloky i 
 - [x] Vizualní highlight při "hluboké shodě" (shoda textu uvnitř nějaké definice sloupce či atributu v daném uzlu) - svítivě tyrkysové orámování
 - [x] Fix ztrácející se pozice v React Flow skrze props-override (zachování stability rozložení při live type-seach)
 
-### Novější funkce
+### Nastavení & Konfigurace
 - [x] Nastavení vzhledu aplikace (Ozubené kolečko) — přidána možnost uživatelsky měnit barvy jednotlivých typů uzlů (projection, union, atd.) a výchozí barvy pro skupiny. Zcela přepracováno UI: možnost výběru typu uzlu přes Select Box, ovládání průhlednosti (opacity slider) a plnohodnotný živý náhled přímo v dialogu pomocí vložené instance React Flow. Nastavení se ukládá do `localStorage` a je asynchronně propsáno pomocí vlastního React Contextu (`ThemeContext.tsx`).
-- [x] Auto-Layout zachovává skupiny (groupNode) — fix pomocí compound graph (dagre) tak, aby dagre drželo členy skupiny u sebe a nepouštělo tam cizí nody.
-
-### Právě řešíme / Budoucí plán
-- [x] Přidání levého sidebaru — kompletni seznam všech existujících aktivních uzlů, vypsaných v kondenzované formě bez zbytečného místa nad a pod řádkem, seřazených abecedně. Seznam bude fungovat jako navigace: po kliknutí na uzel se tento uzel zvýrazní na plátně (Canvas) a jeho detail se rovnou zobrazí v pravém sidebaru.
-- [x] **Column Flow Visualization** — kliknutím na konkrétní sloupec v pravém sidebaru se na canvasu zvýrazní celá datová cesta tohoto sloupce: upstream uzly (fialová #f73be7), downstream uzly (zelená #4ae80b), každý s popiskem `[vstup → výstup]` vykresleným v oranžovém štítku u horní hrany uzlu. Opakovaný klik flow skryje. Přechod na jiný uzel flow automaticky resetuje. Nový soubor `src/utils/columnFlow.ts` implementuje rekurzivní algoritmus traceUp/traceDown přes `node.data.inputs[].mapping`.

@@ -23,6 +23,20 @@ interface SidebarProps {
   setIsProjectionModalOpen: (open: boolean) => void;
   onColumnClick?: (nodeId: string, columnId: string) => void;
   activeColumnFlow?: { nodeId: string; columnId: string } | null;
+  searchQuery?: string;
+}
+
+function HighlightText({ text, query }: { text: string; query?: string }) {
+  if (!query || !query.trim()) return <>{text}</>;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-yellow-200 text-yellow-900 rounded-sm px-0.5">{text.slice(idx, idx + query.length)}</mark>
+      {text.slice(idx + query.length)}
+    </>
+  );
 }
 
 export default function Sidebar({
@@ -32,7 +46,7 @@ export default function Sidebar({
   isJoinModalOpen, setIsJoinModalOpen,
   isUnionModalOpen, setIsUnionModalOpen,
   isProjectionModalOpen, setIsProjectionModalOpen,
-  onColumnClick, activeColumnFlow
+  onColumnClick, activeColumnFlow, searchQuery
 }: SidebarProps) {
   const [selectedFormula, setSelectedFormula] = useState<{ name: string, formula: string } | null>(null);
 
@@ -301,10 +315,9 @@ export default function Sidebar({
                             : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-purple-200 cursor-pointer text-slate-800'
                         }`}
                       onClick={() => {
-                        if (attr.isCalculated && attr.formula) setSelectedFormula({ name: attr.id, formula: attr.formula });
                         if (!isGray) onColumnClick?.(node!.id, attr.id);
                       }}
-                      title={isActiveFlow ? 'Click to hide flow' : attr.isCalculated ? 'Calculated — click to see formula / trace flow' : isGray ? 'Dropped (Not mapped to output)' : 'Click to trace column flow'}
+                      title={isActiveFlow ? 'Click to hide flow' : attr.isCalculated ? 'Click to trace column flow' : isGray ? 'Dropped (Not mapped to output)' : 'Click to trace column flow'}
                     >
                       {attr.isCalculated ? (
                         <Calculator className={`w-3.5 h-3.5 shrink-0 text-indigo-500`} />
@@ -313,7 +326,7 @@ export default function Sidebar({
                       )}
 
                       <span className={`font-mono text-xs truncate ${attr.isCalculated ? 'text-indigo-900 font-medium' : isGray ? 'text-slate-400' : 'text-slate-800 font-medium'}`}>
-                        {attr.id}
+                        <HighlightText text={attr.id} query={searchQuery} />
                       </span>
 
                       {/* Right aligned source columns for mapped columns, only if node has inputs */}
@@ -331,7 +344,11 @@ export default function Sidebar({
                       )}
 
                       {attr.isCalculated && (
-                        <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shrink-0 bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm">
+                        <span
+                          className="ml-auto px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shrink-0 bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm hover:bg-indigo-200 cursor-pointer"
+                          title="Click to see formula"
+                          onClick={(e) => { e.stopPropagation(); if (attr.formula) setSelectedFormula({ name: attr.id, formula: attr.formula }); }}
+                        >
                           Calculated
                         </span>
                       )}

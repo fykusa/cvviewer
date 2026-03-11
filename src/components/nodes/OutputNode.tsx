@@ -16,7 +16,7 @@ export default function OutputNode({ data, selected }: NodeProps<NodeData['data'
           data.searchMatch === 'attribute' ? 'ring-4 ring-cyan-400 !border-cyan-500 shadow-xl' :
           data.columnFlowHighlight === 'up' ? 'ring-2 ring-[#f73be7] !border-[#f73be7] shadow-lg' :
           data.columnFlowHighlight === 'down' ? 'ring-2 ring-[#4ae80b] !border-[#4ae80b] shadow-lg' :
-            selected ? 'shadow-lg ring-2 ring-offset-2 ring-emerald-400' : ''
+            selected ? 'shadow-lg ring-2 ring-offset-1 ring-black' : ''
         }
         hover:shadow-md transition-shadow
       `}

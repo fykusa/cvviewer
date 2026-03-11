@@ -578,6 +578,7 @@ function App() {
               onClose={() => setIsSidebarOpen(false)}
               onColumnClick={handleColumnClick}
               activeColumnFlow={activeColumnFlow}
+              searchQuery={searchQuery}
               isCommentModalOpen={isCommentModalOpen}
               setIsCommentModalOpen={setIsCommentModalOpen}
               isFilterModalOpen={isFilterModalOpen}

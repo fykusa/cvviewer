@@ -1,157 +1,50 @@
 # HANA Calculation View Viewer — Developer Guide
 
-## What this project is
+## Co je projekt
 
-A browser-based viewer and layout editor for SAP HANA `.calculationview` XML files.
-The user loads a file, sees the node graph, can rearrange nodes, apply auto-layout,
-and save the updated positions back to a valid `.calculationview` XML that SAP HANA
-Studio / SAP Business Application Studio can open.
+Browser-based viewer a layout editor pro SAP HANA `.calculationview` XML soubory.
+Uživatel nahraje soubor, vidí node graph, může přesouvat uzly, aplikovat auto-layout
+a uložit pozice zpět do validního XML kompatibilního se SAP HANA Studio / BAS.
 
 **Version:** 0.2.1
-**Stack:** React 18 + TypeScript + Vite + React Flow + dagre + fast-xml-parser + TailwindCSS
-
----
-
-## Current State & Recent Features
-
-- **Column Flow Visualization:** Clicking a column in the right sidebar traces its full data path across the canvas. Upstream nodes get a purple ring (`#f73be7`), downstream nodes a green ring (`#4ae80b`). Each highlighted node shows an orange label `[inputName → outputName]` at the top-right of the node (`top: -10px, right: -30px`). Clicking the same column again clears the highlight; switching nodes resets it via `useEffect`. Implemented in `src/utils/columnFlow.ts` using recursive `traceUp`/`traceDown` via `node.data.inputs[].mapping`. Data is propagated through `nodesWithColumnFlow` useMemo in App.tsx (same pattern as `nodesWithSearch`).
-- **Advanced Node Modals (Join, Union, Projection):** Deep-dive interactive views showing input tables and output structures with color-coded SVG Bezier curve connections. Clicking columns highlights their mappings.
-- **Intelligent Sidebar:** The attributes panel distinguishes mapped columns (black) from unmapped columns (grey), and calculates the actual source column prefixes (e.g., `VBFA.XX_ERZETV`) to clarify data provenance. Calculated columns are highlighted and clickable to show formulas.
-- **Node List Navigation (Left Sidebar):** Fast visual navigation component listing all active nodes alphabetically. Filters nodes quickly via search and automatically selects and centers the graph onto the selected node using React Flow's `fitView` API.
-- **Search System:** Real-time graph search highlights nodes. Node labels match with a red outer stroke, while deep attribute/formula matches use a cyan inner outline.
-- **Automatic Layout & Edge Routing:** Models are automatically organized using `dagre` top-to-bottom upon initial loading. Edges are unified bottom-to-top to match data flow logically.
-- **Robust Export:** The Save layout functionality reliably downloads the updated XML file retaining the original `.calculationview` filename, cleanly replacing only the `<layout>` tag without touching calculation logic.
-- **Interactive Modals for Metadata:** Node comment and filter icons are directly clickable, immediately opening a modal with details.
-
----
-
-## Documentation
-
-All documentation lives in the `doc/` directory:
-
-| File | Contents |
-|------|----------|
-| `doc/architecture.md` | Component hierarchy, state model, key handlers, FlowViewer imperative API |
-| `doc/data-flow.md` | Full parsing pipeline (XML → React Flow), export pipeline (nodes → XML), auto-layout pipeline |
-| `doc/node-types.md` | All node types, color scheme, handle layout, `data` field contracts, edge styles |
-
-**Read these docs before making any changes.** They describe non-obvious design decisions
-that, if ignored, will reintroduce fixed bugs.
-
----
-
-## Running locally
-
-```bash
-npm install
-npm run dev -- --port 3000
-```
-
-The app will be available at `http://localhost:3000`.
-There is no backend — this is a pure client-side SPA.
-
----
-
-## Critical rules & known gotchas
-
-### 1. Layout replacement must use `lastIndexOf`
-SAP HANA XML files contain **two** `<layout>` elements:
-- An early empty one inside `<privateDataFoundation>`
-- The real one with node positions at the end of the file
-
-Always use `lastIndexOf('<layout>')` when replacing. **Never** use a regex that matches
-the first occurrence. See `doc/data-flow.md` → Export section for details.
-
-### 2. Node visibility is driven by layout shapes, not by XML declarations
-A node should be rendered **only** if it has a corresponding `<shape>` in the `<layout>`
-section. Nodes declared in `<dataSources>` or `<calculationViews>` but without a shape
-(e.g. `M_TIME_DIMENSION`, external prequery nodes) must be silently skipped.
-
-Rule:
-```ts
-if (!idToPosition.has(nodeId)) return; // no shape → not visible
-```
-
-### 3. Edges to undefined nodes must be filtered
-If a `<calculationView>` has `<input node="#SOME_EXTERNAL_NODE">` but that node has no
-shape and no local definition, the edge must be skipped. After building all nodes into
-a `Set`, filter edges against that set. See `transformToReactFlow` in `xmlParser.ts`.
-
-### 4. rectangleSize must be preserved
-The export must write back original `rectangleSize height/width` values per node.
-These are parsed and stored in `layoutShapes` state in `App.tsx`, passed to
-`exportToXml` as the `originalShapes` argument. Fallback is `"0"/"0"` for new nodes.
-**Do not hardcode `-1`.**
-
-### 5. fast-xml-parser attribute prefix
-The parser is configured with `attributeNamePrefix: ''`.
-XML attributes are accessed directly by name, WITH NO prefix:
-```ts
-shape.upperLeftCorner.x   // NOT shape['@_upperLeftCorner']['@_x']
-shape.modelObjectName     // NOT shape['@_modelObjectName']
-```
-Attribute values for numeric fields are **strings** — always parse with `parseInt`.
-
-### 6. `useNodesState` initializes only once
-React Flow's `useNodesState(initialNodes)` captures initial state on mount only.
-To push new positions from outside React Flow (e.g. auto-layout), use the imperative
-`applyLayout` method on the `flowRef`. Do not pass changing props expecting them to update
-the internal React Flow state.
-
-### 7. Export uses `positionAbsolute ?? position`
-`node.positionAbsolute` is set by React Flow after it computes layout. For flat graphs
-(no nested sub-flows) it equals `position`, but using it is safer for consistency.
-Cast to `(node as any).positionAbsolute` since the public type doesn't expose it.
-
-### 8. File save uses File System Access API first
-`handleSave` tries `window.showSaveFilePicker` before falling back to `<a download>`.
-This avoids the browser appending `(1)` to filenames when the file already exists.
-The `AbortError` (user cancelled dialog) is silently swallowed.
-
----
-
-## Code locations for common tasks
-
-| Task                          | File                         | Function/area |
-|-------------------------------|------------------------------|---------------|
-| Change node visual appearance | `src/components/nodes/*.tsx` | JSX return |
-| Change auto-layout parameters | `src/utils/autoLayout.ts`    | `g.setGraph({...})` |
-| Change which nodes are visible | `src/utils/xmlParser.ts`    | `transformToReactFlow` |
-| Change how XML is written     | `src/utils/xmlParser.ts`     | `exportToXml` |
-| Add a new node type           | 1. Add `.tsx` in `nodes/`, 2. Register in `FlowViewer.tsx → nodeTypes`, 3. Add mapping in `transformToReactFlow` |
-| Add state to App              | `src/App.tsx`                | top-level `useState` calls |
-| Change Node Navigation | `src/components/LeftSidebar.tsx` | — |
-| Change Right Sidebar content | `src/components/Sidebar.tsx` | — |
-| Trace column data flow | `src/utils/columnFlow.ts` | `traceColumnFlow` |
-
----
-
-## Adding a new calculationView type
-
-1. Add the type string to `CalculationViewType` union in `src/types/index.ts`
-2. Create `src/components/nodes/YourNode.tsx` following the pattern of existing nodes
-3. Register it in `FlowViewer.tsx`:
-   ```ts
-   const nodeTypes = { ..., yourNode: YourNode };
-   ```
-4. Map the `xsi:type` value in `transformToReactFlow`:
-   ```ts
-   cv.type === 'YourView' ? 'yourNode' : ...
-   ```
-5. Add a color to the MiniMap `nodeColor` function in `FlowViewer.tsx`
-
----
-
-## Build for production
-
-```bash
-npm run build
-```
-
-Output goes to `dist/`. The app is a static SPA — serve `dist/` from any static host.
-No server-side code.
+**Stack:** React 18 + TypeScript + Vite + React Flow 11 + dagre + fast-xml-parser + TailwindCSS
 
 ---
 
 ## AI Assistant Rules
-- **Po implementaci nějaké zásadní funkcionality aktualizuj s touto funkcionalitou soubor `README.md` a `implementation_plan.md`.**
+- **Po implementaci zásadní funkcionality aktualizuj `README.md`, `doc/development.md` a `doc/implementation_plan.md`.**
+- Před úpravami si přečti `doc/architecture.md`, `doc/data-flow.md` a `doc/node-types.md` — popisují neobvyklá designová rozhodnutí.
+
+---
+
+## Implementované funkcionality (chronologicky)
+
+001 - grafické zobrazení uzlů na canvasu, po nakliknutí detail v pravém sidebaru
+002 - new: parsování XML `Calculation:scenario` do React Flow nodes/edges
+003 - new: vlastní node komponenty pro různé typy uzlů — Projection, Join, Aggregation, Union, DataSource, Output
+004 - new: unifikace handles — vstupy zespodu, výstup zeshora u všech typů uzlů
+005 - new: statistiky na kartičkách uzlů — počty vstupů, atributů, indikátor kalkulovaných sloupců
+006 - new: extrémní odzoomování — `minZoom` snížen na `0.05`
+007 - new: načítání původních pozic uzlů přímo z `<layout>` bloku XML (1:1 bez přepočtu Y osy)
+008 - new: tlačítko Auto-Layout (dagre, algoritmus bottom-to-top)
+009 - new: inteligentní Auto-Layout s dynamickými rozměry přes browser bounding box
+010 - new: potvrzovací dialog před Auto-Layoutem (prevence ztráty ručně naformátovaného layoutu)
+011 - new: Save Layout — stažení validního XML se zapsanými aktuálními pozicemi uzlů
+012 - new: rozlišení běžných a kalkulovaných atributů v sidebaru
+013 - new: vizuální redesign sidebaru — kompaktní badges (Tag = sloupce, Calculator = kalkulované)
+014 - new: zobrazení SQL formule kalkulovaného sloupce v sidebaru přes modal
+015 - new: komentáře uzlů jako proklikávací ikona na plátně → neblokující modal
+016 - new: vyhledávací panel v hlavičce s real-time filtrací uzlů
+017 - new: vizuální highlight — červené orámování při shodě v názvu uzlu
+018 - new: vizuální highlight — tyrkysové orámování při hluboké shodě (atributy/formule)
+019 - bugfix: stabilita pozic uzlů při live search (props-override fix)
+020 - new: Settings dialog — uživatelsky měnitelné barvy typů uzlů (ThemeContext + localStorage)
+021 - bugfix: Auto-Layout zachovává skupiny (groupNode) — compound graph přes dagre
+022 - new: levý sidebar — abecední seznam aktivních uzlů, klik → center na plátně + detail v pravém sidebaru
+023 - new: Column Flow Visualization — klik na sloupec v sidebaru zvýrazní jeho datovou cestu přes canvas (upstream fialová, downstream zelená)
+024 - new: pokročilé modály pro Join, Union, Projection — interaktivní diagram mapování sloupců s SVG Bezier křivkami
+025 - new: skrytý přístup k Save Layout přes písmeno „r" v nadpisu (tlačítko deaktivováno pro veřejné uživatele)
+026 - bugfix: klik na kalkulovaný sloupec spouští column flow; formule se zobrazí až kliknutím na badge „Calculated"
+
+---
+
