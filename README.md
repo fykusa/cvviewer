@@ -23,6 +23,7 @@ Open `http://localhost:3000`, load a `.calculationview` file, explore the graph.
 - **Rychlá navigace (Levý Sidebar):** Kompaktní abecední seznam všech aktivních uzlů slouží jako rychlá obsahová navigace po dokumentu. Možnost okamžitě najít a scrollovat grafem kliknutím na prvek v seznamu.
 - **Prohledávání grafu:** Vyhledávací lišta s barevným zvýrazněním. Rychle rozezná, jestli se hledaný výraz nachází v názvu uzlu (červený obrys) nebo hluboko v jeho atributech (tyrkysový obrys).
 - **Modální zobrazení Komentářů a Filtrů:** Přímý rychlý proklik ikonkou na případné zakotvené komentáře nebo omezující filtry bez lovení v kódu.
+- **Vizualizace datového toku sloupce (Column Flow):** Kliknutím na konkrétní sloupec v pravém sidebaru se na canvasu barevně zvýrazní celá datová trasa daného sloupce — upstream uzly fialově, downstream uzly zeleně — s popiskem `[vstup → výstup]` u každého relevantního uzlu. Opakovaný klik flow skryje.
 - **Chytrý Auto-Layout:** Top-to-Bottom (příp. Bottom-to-Top) algoritmus s ohledem na reálné prostorové velikosti `DOM` elementů, zabraňující překrývání.
 - **Bezpečný XML Export:** Funkce "Save Layout" čte původní dokument a elegantně přepisuje pouze `<layout>` tag, čímž uchovává vše ostatní dokonale bez poskvrny.
 

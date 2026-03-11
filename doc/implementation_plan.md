@@ -34,3 +34,4 @@ Vývojový a implementační deník funkcionalit. Zde sledujeme hotové bloky i 
 
 ### Právě řešíme / Budoucí plán
 - [x] Přidání levého sidebaru — kompletni seznam všech existujících aktivních uzlů, vypsaných v kondenzované formě bez zbytečného místa nad a pod řádkem, seřazených abecedně. Seznam bude fungovat jako navigace: po kliknutí na uzel se tento uzel zvýrazní na plátně (Canvas) a jeho detail se rovnou zobrazí v pravém sidebaru.
+- [x] **Column Flow Visualization** — kliknutím na konkrétní sloupec v pravém sidebaru se na canvasu zvýrazní celá datová cesta tohoto sloupce: upstream uzly (fialová #f73be7), downstream uzly (zelená #4ae80b), každý s popiskem `[vstup → výstup]` vykresleným v oranžovém štítku u horní hrany uzlu. Opakovaný klik flow skryje. Přechod na jiný uzel flow automaticky resetuje. Nový soubor `src/utils/columnFlow.ts` implementuje rekurzivní algoritmus traceUp/traceDown přes `node.data.inputs[].mapping`.

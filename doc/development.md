@@ -14,6 +14,7 @@ Studio / SAP Business Application Studio can open.
 
 ## Current State & Recent Features
 
+- **Column Flow Visualization:** Clicking a column in the right sidebar traces its full data path across the canvas. Upstream nodes get a purple ring (`#f73be7`), downstream nodes a green ring (`#4ae80b`). Each highlighted node shows an orange label `[inputName → outputName]` at the top-right of the node (`top: -10px, right: -30px`). Clicking the same column again clears the highlight; switching nodes resets it via `useEffect`. Implemented in `src/utils/columnFlow.ts` using recursive `traceUp`/`traceDown` via `node.data.inputs[].mapping`. Data is propagated through `nodesWithColumnFlow` useMemo in App.tsx (same pattern as `nodesWithSearch`).
 - **Advanced Node Modals (Join, Union, Projection):** Deep-dive interactive views showing input tables and output structures with color-coded SVG Bezier curve connections. Clicking columns highlights their mappings.
 - **Intelligent Sidebar:** The attributes panel distinguishes mapped columns (black) from unmapped columns (grey), and calculates the actual source column prefixes (e.g., `VBFA.XX_ERZETV`) to clarify data provenance. Calculated columns are highlighted and clickable to show formulas.
 - **Node List Navigation (Left Sidebar):** Fast visual navigation component listing all active nodes alphabetically. Filters nodes quickly via search and automatically selects and centers the graph onto the selected node using React Flow's `fitView` API.
@@ -121,6 +122,7 @@ The `AbortError` (user cancelled dialog) is silently swallowed.
 | Add state to App              | `src/App.tsx`                | top-level `useState` calls |
 | Change Node Navigation | `src/components/LeftSidebar.tsx` | — |
 | Change Right Sidebar content | `src/components/Sidebar.tsx` | — |
+| Trace column data flow | `src/utils/columnFlow.ts` | `traceColumnFlow` |
 
 ---
 
