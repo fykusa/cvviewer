@@ -30,6 +30,8 @@ Vývojový a implementační deník funkcionalit. Zde sledujeme hotové bloky i 
 - [x] Vizualní highlight vyhledávaných prvků: tlusté zářivě oranžové/červené (#f42c16) orámování při shodě v názvu uzlu
 - [x] Vizualní highlight při "hluboké shodě" (shoda textu uvnitř nějaké definice sloupce či atributu v daném uzlu) - svítivě tyrkysové orámování
 - [x] Fix ztrácející se pozice v React Flow skrze props-override (zachování stability rozložení při live type-seach)
+- [x] Zvýraznění shody vyhledávání i v pravém sidebaru — shoda v názvech sloupců označena žlutým highlightem (komponenta `HighlightText` v `Sidebar.tsx`)
 
 ### Nastavení & Konfigurace
 - [x] Nastavení vzhledu aplikace (Ozubené kolečko) — přidána možnost uživatelsky měnit barvy jednotlivých typů uzlů (projection, union, atd.) a výchozí barvy pro skupiny. Zcela přepracováno UI: možnost výběru typu uzlu přes Select Box, ovládání průhlednosti (opacity slider) a plnohodnotný živý náhled přímo v dialogu pomocí vložené instance React Flow. Nastavení se ukládá do `localStorage` a je asynchronně propsáno pomocí vlastního React Contextu (`ThemeContext.tsx`).
+- [x] Jednotné černé orámování vybraného uzlu na canvasu — `ring-black` konzistentně napříč všemi typy uzlů (Projection, Join, Aggregation, Union, DataSource, Output)

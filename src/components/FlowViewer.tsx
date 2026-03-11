@@ -1,4 +1,4 @@
-import React, { useCallback, useImperativeHandle, forwardRef, useEffect, useState } from 'react';
+import React, { useCallback, useImperativeHandle, forwardRef, useEffect, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -95,6 +95,44 @@ const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
       [onNodeClick]
     );
 
+    // Intercept arrow keys before ReactFlow handles them.
+    // ArrowUp/Down expand selection to connected nodes instead of moving them.
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const nodesRef = useRef(nodes);
+    const edgesRef = useRef(edges);
+    useEffect(() => { nodesRef.current = nodes; }, [nodes]);
+    useEffect(() => { edgesRef.current = edges; }, [edges]);
+
+    useEffect(() => {
+      const el = wrapperRef.current;
+      if (!el) return;
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+        const selected = nodesRef.current.filter(n => n.selected);
+        if (selected.length === 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+        const selectedIds = new Set(selected.map(n => n.id));
+        const toAdd = new Set<string>();
+        if (e.key === 'ArrowUp') {
+          // Expand toward data consumers (edge.source → edge.target)
+          selectedIds.forEach(id => {
+            edgesRef.current.forEach(edge => { if (edge.source === id) toAdd.add(edge.target); });
+          });
+        } else {
+          // Expand toward data providers (edge.target ← edge.source)
+          selectedIds.forEach(id => {
+            edgesRef.current.forEach(edge => { if (edge.target === id) toAdd.add(edge.source); });
+          });
+        }
+        if (toAdd.size === 0) return;
+        setNodes(prev => prev.map(n => ({ ...n, selected: selectedIds.has(n.id) || toAdd.has(n.id) })));
+      };
+      el.addEventListener('keydown', onKeyDown, { capture: true });
+      return () => el.removeEventListener('keydown', onKeyDown, { capture: true });
+    }, []);
+
     const handleNodesDelete = useCallback((deletedNodes: Node[]) => {
       const deletedGroupIds = new Set(
         deletedNodes.filter(n => n.type === 'groupNode').map(n => n.id)
@@ -113,7 +151,7 @@ const FlowViewer = forwardRef<FlowViewerHandle, FlowViewerProps>(
 
     return (
 
-      <div className="w-full h-full">
+      <div ref={wrapperRef} className="w-full h-full">
         <ReactFlow
           nodes={nodes}
           edges={edges}

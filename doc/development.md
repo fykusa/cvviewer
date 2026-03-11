@@ -45,6 +45,8 @@ a uložit pozice zpět do validního XML kompatibilního se SAP HANA Studio / BA
 024 - new: pokročilé modály pro Join, Union, Projection — interaktivní diagram mapování sloupců s SVG Bezier křivkami
 025 - new: skrytý přístup k Save Layout přes písmeno „r" v nadpisu (tlačítko deaktivováno pro veřejné uživatele)
 026 - bugfix: klik na kalkulovaný sloupec spouští column flow; formule se zobrazí až kliknutím na badge „Calculated"
+027 - new: zvýraznění shody vyhledávání i v pravém sidebaru — shoda v názvech sloupců označena žlutým highlightem (komponenta HighlightText)
+028 - new: jednotné černé orámování vybraného uzlu na canvasu — ring-black konzistentně napříč všemi typy uzlů
 
 ---
 
